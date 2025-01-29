@@ -1,0 +1,199 @@
+<!-- views/category-products.ejs -->
+<%-include('../../views/partials/user/header')%>
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>category</title>
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css" rel="stylesheet">
+    <style>
+        .product-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(300px, 1fr));
+            gap: 2rem;
+            padding: 2rem;
+        }
+
+        .product-card {
+            border: 1px solid #e2e8f0;
+            border-radius: 0.5rem;
+            overflow: hidden;
+            transition: transform 0.2s;
+        }
+
+        .product-card:hover {
+            transform: translateY(-5px);
+            box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+        }
+
+        .product-image {
+            width: 100%;
+            height: 300px;
+            object-fit: cover;
+        }
+
+        .product-info {
+            padding: 1rem;
+        }
+
+        .product-title {
+            font-size: 1.1rem;
+            font-weight: 600;
+            margin-bottom: 0.5rem;
+        }
+
+        .price-container {
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+        }
+
+        .current-price {
+            font-weight: 600;
+            color: #000;
+        }
+
+        .original-price {
+            text-decoration: line-through;
+            color: #666;
+        }
+
+        .discount {
+            color: #dc2626;
+            font-size: 0.9rem;
+        }
+
+        .rating {
+            color: #fbbf24;
+            margin: 0.5rem 0;
+        }
+
+        .pagination {
+            display: flex;
+            justify-content: center;
+            gap: 1rem;
+            padding: 2rem;
+        }
+
+        .page-link {
+            padding: 0.5rem 1rem;
+            border: 1px solid #e2e8f0;
+            border-radius: 0.25rem;
+            color: #000;
+            text-decoration: none;
+        }
+
+        .page-link.active {
+            background-color: #000;
+            color: #fff;
+        }
+
+        .search-container {
+            max-width: 600px;
+            margin: 2rem auto;
+            padding: 0 1rem;
+        }
+
+        .search-input {
+            width: 100%;
+            padding: 0.75rem;
+            border: 1px solid #e2e8f0;
+            border-radius: 0.25rem;
+        }
+
+        @media (max-width: 768px) {
+            .product-grid {
+                grid-template-columns: repeat(auto-fill, minmax(250px, 1fr));
+                padding: 1rem;
+            }
+        }
+    </style>
+</head>
+<body>
+
+    <% if (locals.searchTerm && locals.searchTerm.length > 0) { %>
+        <p class="mb-4 text-gray-600">
+            Showing <%= products.length %> results for "<%= searchTerm %>"
+        </p>
+    <% } %>
+ 
+
+    <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-8">
+        <% let count = 0; %>
+        <% products.forEach(product => { %>
+            <% if (count <= 6) { %>
+                <div class="product-card shadow-lg rounded-lg overflow-hidden transition-transform transform hover:scale-105">
+                    <!-- Product Image -->
+                    <div class="relative">
+                        <img src="/uploads/<%= product.productImage[0] %>" alt="<%= product.productName %>" class="w-full h-64 object-cover">
+                        <!-- <span class="absolute top-2 left-2 bg-red-500 text-white text-sm px-2 py-1 rounded">-40%</span> -->
+                        <div class="absolute top-2 right-2 flex flex-col space-y-2">
+                            <button class="action-button bg-white text-gray-700 rounded-full p-2 hover:text-red-500 transition-colors">
+                                ♡
+                            </button>
+                            <button class="action-button bg-white text-gray-700 rounded-full p-2 hover:text-blue-500 transition-colors">
+                                👁
+                            </button>
+                        </div>
+                    </div>
+
+                    <!-- Product Info -->
+                    <a href="/product/<%= product._id %>" class="block p-4">
+                        <h3 class="font-semibold text-lg text-gray-800 truncate"><%= product.productName %></h3>
+                        <div class="flex items-center justify-between mt-2">
+                            <span class="text-lg font-bold text-green-600">$<%= product.salePrice %></span>
+                            <span class="text-sm line-through text-gray-500">$<%= product.regularPrice %></span>
+                        </div>
+                        <div class="flex items-center mt-2">
+                            <span class="text-yellow-500">★★★★★</span>
+                            <span class="text-sm text-gray-500 ml-2">(88 reviews)</span>
+                        </div>
+                    </a>
+
+                    <!-- Add to Cart Button -->
+                    <div class="p-4">
+                        <input type="hidden" name="quantity" id="quantity-input" value="1">
+                        <button class="w-full bg-pink-500 text-white py-2 rounded hover:bg-gray-800 transition-colors" data-product-id="<%= product._id %>">
+                            Add to Cart
+                        </button>
+                    </div>
+                </div>
+                <% count++; %>
+            <% } %>
+        <% }) %>
+    </div>
+        <!-- Pagination -->
+        <% if (locals.totalPages > 1) { %>
+            <div class="flex justify-center items-center space-x-2 mt-8">
+                <% if (currentPage > 1) { %>
+                    <a href="/shop?page=<%= currentPage - 1 %><%= locals.searchTerm ? `&search=${searchTerm}` : '' %>" 
+                       class="px-4 py-2 border rounded hover:bg-gray-100">
+                        Previous
+                    </a>
+                <% } %>
+    
+                <% for(let i = 1; i <= totalPages; i++) { %>
+                    <a href="/shop?page=<%= i %><%= locals.searchTerm ? `&search=${searchTerm}` : '' %>"
+                       class="px-4 py-2 border rounded <%= currentPage === i ? 'bg-pink-500 text-white' : 'hover:bg-gray-100' %>">
+                        <%= i %>
+                    </a>
+                <% } %>
+    
+                <% if (currentPage < totalPages) { %>
+                    <a href="/shop?page=<%= currentPage + 1 %><%= locals.searchTerm ? `&search=${searchTerm}` : '' %>"
+                       class="px-4 py-2 border rounded hover:bg-gray-100">
+                        Next
+                    </a>
+                <% } %>
+            </div>
+        <% } %>
+
+    
+
+    <script>
+       
+    </script>
+</body>
+</html>
+<%-include('../../views/partials/user/footer')%>

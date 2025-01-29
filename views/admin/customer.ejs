@@ -1,0 +1,101 @@
+<%- include('../partials/admin/header1') %>   
+
+<section class="content-main">
+    <div class="content-header">
+        <h2 class="content-title card-title">Customers List</h2>
+    </div>
+    <form class="search-form" method="GET" action="/admin/customer">
+        <input type="text" placeholder="Search" name="search" value="<%= searchQuery || '' %>" class="search-input">
+        <button type="submit" class="search-button"><i class="fa fa-search"></i></button>
+    </form>
+
+    <div class="card mb-4">
+        <div class="card-body">
+            <table class="table">
+                <thead>
+                    <tr>
+                        <th>S No</th>
+                        <th>Name</th>
+                        <th>Email</th>
+                        <th>Mobile</th>
+                        <th>Status</th>
+                        <th>Action</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    <% if (data.length > 0) { %>
+                        <% data.forEach((user, i) => { %>
+                            <tr data-user-id="<%= user._id %>">
+                                <td><%= (currentPage - 1) * 10 + i + 1 %></td>
+                                <td><%= user.name %></td>
+                                <td><%= user.email %></td>
+                                <td><%= user.phone %></td>
+                                <td>
+                                    <span class="badge rounded-pill status-badge <%= user.isBlocked ? 'alert-warning' : 'alert-success' %>">
+                                        <%= user.isBlocked ? 'Not Verified' : 'Verified' %>
+                                    </span>
+                                </td>
+                                <td>
+                                    <button class="btn-action block-unblock" data-user-id="<%= user._id %>">
+                                        <%= user.isBlocked ? 'Unblock' : 'Block' %>
+                                    </button>
+                                </td>
+                            </tr>
+                        <% }) %>
+                    <% } else { %>
+                        <tr>
+                            <td colspan="6" class="text-center">No users found.</td>
+                        </tr>
+                    <% } %>
+                </tbody>
+            </table>
+        </div>
+    </div>
+
+    <% if (totalPages > 1) { %>
+        <nav>
+            <ul class="pagination">
+                <% for (let i = 1; i <= totalPages; i++) { %>
+                    <li class="page-item <%= i === currentPage ? 'active' : '' %>">
+                        <a class="page-link" href="/admin/customer?page=<%= i %>"><%= i %></a>
+                    </li>
+                <% } %>
+            </ul>
+        </nav>
+    <% } %>
+</section>
+
+<%- include('../partials/admin/footer') %>  
+
+<script>
+    document.addEventListener('DOMContentLoaded', function () {
+        document.querySelectorAll('.block-unblock').forEach(button => {
+            button.addEventListener('click', function () {
+                const user_id = this.dataset.userId;
+
+                fetch('/admin/blockAndUnblock', {
+                    method: 'PATCH',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ user_id }),
+                })
+                .then(response => response.json())
+                .then(data => {
+                    if (data.res) {
+                        const row = document.querySelector(`tr[data-user-id="${user_id}"]`);
+                        const statusBadge = row.querySelector('.status-badge');
+                        const actionButton = row.querySelector('.block-unblock');
+
+                        statusBadge.textContent = data.is_blocked ? 'Not Verified' : 'Verified';
+                        statusBadge.classList.toggle('alert-warning', data.is_blocked);
+                        statusBadge.classList.toggle('alert-success', !data.is_blocked);
+
+                        actionButton.textContent = data.is_blocked ? 'Unblock' : 'Block';
+                    } else {
+                        console.error(data.message);
+                    }
+                })
+                .catch(err => console.error(err));
+            });
+        });
+    });
+</script>

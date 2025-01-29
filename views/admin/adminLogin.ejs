@@ -1,0 +1,117 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Trendellion - Admin Login</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+            font-family: Arial, sans-serif;
+        }
+
+        body {
+            min-height: 100vh;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            background-color: white;
+        }
+
+        .header {
+            width: 100%;
+            text-align: center;
+            padding: 20px;
+            border-bottom: 1px solid #e5e5e5;
+        }
+
+        .header h1 {
+            font-size: 24px;
+            color: #333;
+            font-weight: normal;
+        }
+
+        .login-container {
+            width: 90%;
+            max-width: 400px;
+            margin: 40px auto;
+            padding: 20px;
+            background-color: #f5d0d9;
+            border-radius: 8px;
+        }
+
+        .login-form {
+            display: flex;
+            flex-direction: column;
+            gap: 15px;
+        }
+
+        .login-header {
+            text-align: center;
+            margin-bottom: 20px;
+            color: #333;
+        }
+
+        .form-group {
+            display: flex;
+            flex-direction: column;
+        }
+
+        input[type="text"],
+        input[type="password"] {
+            padding: 10px;
+            border: none;
+            border-radius: 4px;
+            background-color: rgba(0, 0, 0, 0.1);
+        }
+
+        input[type="submit"] {
+            padding: 8px 20px;
+            background-color: #d4899b;
+            border: none;
+            border-radius: 4px;
+            color: white;
+            cursor: pointer;
+            align-self: flex-end;
+        }
+
+        input[type="submit"]:hover {
+            background-color: #c27686;
+        }
+
+        @media (max-width: 480px) {
+            .login-container {
+                width: 95%;
+                margin: 20px auto;
+            }
+
+            .header h1 {
+                font-size: 20px;
+            }
+        }
+    </style>
+</head>
+<body>
+    <header class="header">
+        <h1>Trendellion</h1>
+    </header>
+    
+    <div class="login-container">
+        <form class="login-form" action="/admin/dashboard" method="POST">
+            <h2 class="login-header">Admin Login</h2>
+            
+            <div class="form-group">
+                <input type="text" name="email" placeholder="User name" required>
+            </div>
+            
+            <div class="form-group">
+                <input type="password" name="password" placeholder="Password" required>
+            </div>
+            
+            <input type="submit" value="Login">
+        </form>
+    </div>
+</body>
+</html>

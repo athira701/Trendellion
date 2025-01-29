@@ -1,0 +1,143 @@
+<%- include('../partials/admin/header1') %>
+<script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
+
+<main class="main-content container-fluid">
+    <div class="row justify-content-center">
+        <div class="col-12 col-sm-10 col-md-8 col-lg-6 bg-white mt-5 p-4 shadow-sm">
+            <h2 class="text-center mb-4">EDIT CATEGORY</h2>
+
+            <form id="editCategoryForm" action="/admin/editCategory" method="post">
+                <input type="hidden" name="id" value="<%= category._id %>">
+                <div class="mb-3">
+                    <label for="catName" class="form-label">Category Name</label>
+                    <input
+                        type="text"
+                        class="form-control"
+                        id="catName"                       
+                        name="name"
+                        value="<%= category.name %>"
+                        placeholder="Enter category name"
+                        required
+                        maxlength="50"
+                        pattern="^[A-Za-z][A-Za-z\s]{2,}$"
+                        title="Category name must start with a letter, contain only alphabets or spaces, and have at least 3 characters."
+                    >
+                    <div class="invalid-feedback">
+                        Please enter a valid category name (not start with a number,max 50 characters, no special characters).
+                    </div>
+                </div>
+
+                <div class="mb-3">
+                    <label for="description" class="form-label">Category Description</label>
+                    <textarea
+                        class="form-control"
+                        id="description"
+                        name="description"          
+                        placeholder="Enter category description"
+                        rows="3"
+                        required
+                        maxlength="250"
+                        minlength="10"
+                    ><%= category.description %></textarea>
+                    <div class="invalid-feedback">
+                        Please provide a valid description (max 250 characters).
+                    </div>
+                </div>
+
+                <div class="d-grid">
+                    <button type="submit" class="btn btn-primary">Edit Category</button>
+                    
+                </div>
+            </form>
+        </div>
+    </div>
+
+    
+    <script>
+        document.querySelector('form').addEventListener('submit',async function (e) {
+            e.preventDefault()
+
+            const name = document.getElementById('catName').value.trim();
+            const description = document.getElementById('description').value.trim();
+    
+            // Validate category name
+            const namePattern = /^[A-Za-z][A-Za-z\s]{2,}$/; // Minimum 3 characters, only alphabets and spaces, starts with a letter.
+            if (!namePattern.test(name)) {
+               
+                Swal.fire({
+                    icon: 'error',
+                    title: 'Invalid Category Name',
+                    text: 'Category name must start with a letter, contain only alphabets or spaces, and have at least 3 characters.',
+                });
+                return;
+            }
+    
+            // Validate category description
+            if (description.length < 10 || description.length > 250) {
+               
+                Swal.fire({
+                    icon: 'error',
+                    title: 'Invalid Description',
+                    text: 'Category description must have between 10 and 250 characters.',
+                });
+                return;
+            }
+            const formData = new FormData(e.target);
+            const data = Object.fromEntries(formData.entries());
+             
+             
+            try {
+                const response = await fetch('/admin/editCategory', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify(data),
+                });
+                
+                const result = await response.json();
+                
+                
+                if (result.success) {
+                    Swal.fire({
+                        icon: 'success',
+                        title: 'Success',
+                        text: result.message || 'Category edited successfully!',
+                    }).then(() => {
+                        window.location.href = '/admin/category'; 
+                    });
+                } else {
+                    Swal.fire({
+                        icon: 'error',
+                        title: 'Error',
+                        text: result.message || 'Failed to edit category. Please try again.',
+                    });
+                }
+            } catch (error) {
+                console.error(error);
+                Swal.fire({
+                    icon: 'error',
+                    title: 'Unexpected Error',
+                    text: 'An unexpected error occurred. Please try again later.',
+                });
+            }
+        });
+
+        
+
+        const urlParams = new URLSearchParams(window.location.search);
+        console.log(window.location.search);
+         if (urlParams.get('editSuccess') === 'true') {
+            Swal.fire({
+                icon: 'success',
+                title: 'Success',
+                text: 'Category edited successfully!',
+            }).then(() => {
+            // Optionally remove the query parameter from the URL after showing the alert
+            const currentUrl = window.location.href.split('?')[0];
+            window.history.replaceState({}, document.title, currentUrl);
+        });
+    }
+    </script>
+       
+</main>
+
+<%- include('../partials/admin/footer') %>

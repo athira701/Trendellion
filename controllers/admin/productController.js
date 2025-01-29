@@ -1,0 +1,329 @@
+const Product = require('../../models/productSchema')
+const Category = require('../../models/categorySchema')
+const User = require('../../models/userSchema')
+const fs = require('fs')
+const path = require('path')
+const multer=require('multer')
+
+// const sharp = require('sharp')
+
+
+// const getProductPage = async (req,res)=>{
+//     try {
+//         const products = await Product.find({})
+//         console.log(products)
+
+//         res.render('admin/allProduct',{
+//             products
+//         })
+//     } catch (error) {
+//         console.log('error loading product page',error)
+        
+//     }
+// }
+const getProductPage = async (req, res) => {
+    try {
+        console.log("hellooo");
+        const page = Math.max(1, parseInt(req.query.page) || 1);
+        const limit = Math.max(1, parseInt(req.query.limit) || 10);
+        const skip = (page - 1) * limit;
+
+        const totalProducts = await Product.countDocuments();
+        const products = await Product.find({})
+            .select('productName productImage quantity category salePrice color isBlocked')
+            .populate('category') // Populate only the 'name' field of category
+            .sort({ createdAt: -1 })
+            .skip(skip)
+            .limit(limit);
+
+        const totalPages = Math.ceil(totalProducts / limit);
+
+        res.render('admin/allProduct', {
+            products,
+            currentPage: page,
+            totalPages,
+            limit,
+        });
+    } catch (error) {
+        console.error('Error loading product page:', error);
+        res.status(500).render('error', { message: 'Unable to load products. Please try again later.' });
+    }
+};
+
+
+
+
+const getProductAddPage = async (req, res) => {
+    try {
+        const category = await Category.find({ isListed: true });
+        res.render("admin/addProduct", { cat: category });
+    } catch (error) {
+        console.error("Error fetching categories:", error);
+        res.status(500).send("Internal Server Error");
+    }
+};
+
+const deleteProduct = async (req, res) => {
+    const productId = req.params.id;
+    console.log("idddddd",productId);
+
+    try {
+        
+        const result = await Product.findByIdAndUpdate({_id:productId}, { $set:{isBlocked: true} });
+        console.log("resss",result);
+
+        if (result) {
+            return res.status(200).json({ success: true, message: 'product soft deleted successfully' });
+        } else {
+            return res.status(404).json({ success: false, error: 'product not found' });
+        }
+    } catch (error) {
+        console.error('Error soft deleting product:', error);
+        res.status(500).json({ success: false, error: 'Internal server error' });
+    }
+};
+
+const restoreProduct = async (req, res) => {
+    const productId = req.params.id;
+
+
+    try {
+        const result = await Product.findByIdAndUpdate({_id:productId}, {$set:{isBlocked: false} });
+
+        if (result) {
+            return res.status(200).json({ success: true, message: "product restored successfully" });
+        } else {
+            return res.status(404).json({ success: false, error: "product not found" });
+        }
+    } catch (error) {
+        console.error("Error restoring product:", error);
+        res.status(500).json({ success: false, error: "Internal server error" });
+    }
+};
+
+
+
+const addProduct = async (req, res) => {
+    try {
+        const details = req.body;
+        const files = req.files;
+
+        console.log('Full Request Body:', req.body);
+        console.log('Files:', req.files);
+        
+        // Comprehensive validation with null checks
+        const validationErrors = [];
+
+        // Function to safely trim or return empty string
+        const safeTrim = (value) => value ? value.trim() : '';
+
+        // Validate name
+        const productName = safeTrim(details.productName);
+        const namePattern = /^[A-Za-z][A-Za-z\s]{2,}$/;
+        if (!namePattern.test(productName)) {
+            console.log('name pattern',namePattern);
+            validationErrors.push('Product name must contain only alphabets, start with a letter, and have at least 3 characters.');
+        }
+        console.log("productname",productName)
+
+        // Check for existing product
+        const existingProduct = await Product.findOne({
+            productName: { $regex: new RegExp('^' + productName + '$', 'i') }
+        });
+        if (existingProduct) {
+            validationErrors.push('A product with this name already exists.');
+        }
+
+        // Validate price
+        const price = parseFloat(details.price);
+        if (isNaN(price) || price <= 0) {
+            console.log('price',price);
+            validationErrors.push('Price must be a positive number');
+        }
+
+        // Validate sale price
+        const sPrice = parseFloat(details.sPrice);
+        if (isNaN(sPrice) || sPrice < 0 || sPrice > price) {
+            validationErrors.push('Sale Price must be a non-negative number and less than or equal to Price.');
+        }
+
+        // Validate quantity
+        const quantity = parseInt(details.quantity);
+        if (isNaN(quantity) || quantity <= 0) {
+            validationErrors.push('Quantity must be a positive number.');
+        }
+
+        // Validate category
+        const categoryId = safeTrim(details.categoryId);
+        if (!categoryId) {
+            validationErrors.push('Please select a category.');
+        }
+
+        // Validate description
+        const description = safeTrim(details.description);
+        if (description.length < 10 || description.length > 250) {
+            validationErrors.push('Product description must have between 10 and 250 characters.');
+        }
+
+        // Validate color
+        const color = safeTrim(details.color);
+        const colorPattern = /^[A-Za-z][A-Za-z\s]{1,}$/;
+        if (!colorPattern.test(color)) {
+            validationErrors.push('Color must contain only alphabets and start with a letter.');
+        }
+
+        // Check image uploads
+        if (!files || files.length < 4) {
+            validationErrors.push('Please upload at least 4 images.');
+        }
+
+        console.log("reached ")
+
+        // If there are validation errors, return them
+     
+        console.log("heloooo")
+        // Map uploaded images
+        const images = files.map(file => file.filename);
+        console.log("heloooo")
+        // Create product object
+        const product = new Product({
+            productName: productName,
+            description: description,
+            brand: safeTrim(details.brand) || "Unknown",
+            category: categoryId,
+            regularPrice: price,
+            salePrice: sPrice,
+            quantity,
+            color: color,
+            productImage: images,
+            status: safeTrim(details.visibility) || "Available"
+        });
+
+        // Save product to database
+        const savedProduct = await product.save();
+        console.log("product",savedProduct)
+        res.status(200).json({ 
+            success: true, 
+            message: 'Product added successfully.', 
+            product: savedProduct 
+        });
+
+    } catch (error) {
+        console.error('Error adding product:', error);
+        res.status(500).json({ 
+            success: false, 
+            message: error.message || 'Internal server error.',
+            error: error.message 
+        })
+    }
+}
+
+const loadEditProduct = async (req, res) => {
+    try {
+        console.log('product editing page loading');
+        const id = req.query.id
+
+        console.log(req.query)
+        console.log("id", id);
+
+        const proData = await Product.findById({ _id: id })
+        console.log("product",proData)
+        const categories = await Category.find()
+        const selectedCategory = await Category.findById({ _id: proData.category })
+        console.log("sele",selectedCategory)
+        console.log("cattt",categories);
+
+        console.log(proData);
+        if (proData) {
+            console.log('reached here');
+            res.render('admin/editProduct', { product: proData,  categories,selectedCategory })
+        } else {
+            res.redirect('/admin/allProduct')
+        }
+    } catch (error) {
+        console.log('error editing product');
+        console.log(error);
+    }
+}
+
+
+
+const editProduct = async (req, res) => {
+    try {
+        console.log('Edit product request received');
+
+        const productId = req.params.id;
+        const {
+            productName,
+            price,
+            sPrice,
+            color,
+            quantity,
+            description,
+            categoryId,
+            visibility
+        } = req.body;
+
+        // Find the existing product
+        const product = await Product.findById(productId);
+        if (!product) {
+            return res.status(404).json({
+                success: false,
+                message: 'Product not found',
+            });
+        }
+
+        // Update product fields
+        product.productName = productName;
+        product.regularPrice = price;
+        product.salePrice = sPrice;
+        product.color = color;
+        product.quantity = quantity;
+        product.description = description;
+        product.category = categoryId;
+        product.visibility = visibility;
+
+        // Handle image uploads
+        if (req.files && req.files.length > 0) {
+            const uploadedImages = req.files.map(file => file.filename);
+
+            // Delete old images if new ones are provided
+            if (product.productImage && product.productImage.length > 0) {
+                product.productImage.forEach(image => {
+                    const imagePath = path.join(__dirname, '../public/uploads', image);
+                    if (fs.existsSync(imagePath)) {
+                        fs.unlinkSync(imagePath);
+                    }
+                });
+            }
+
+            // Update product images with new uploads
+            product.productImage = uploadedImages;
+        }
+
+        // Save updated product to the database
+        await product.save();
+
+        res.status(200).json({
+            success: true,
+            message: 'Product updated successfully',
+            redirectUrl: '/admin/allProduct',
+        });
+    } catch (error) {
+        console.error('Error updating product:', error);
+        res.status(500).json({
+            success: false,
+            message: 'An error occurred while updating the product',
+        });
+    }
+}
+
+module.exports = {
+    getProductPage,
+    addProduct,
+    getProductAddPage,
+    deleteProduct,
+    restoreProduct,
+    loadEditProduct ,
+    editProduct
+}

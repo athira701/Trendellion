@@ -1,0 +1,132 @@
+<%- include('../partials/admin/header1') %>
+<script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
+
+<main class="main-content container-fluid">
+    <div class="row justify-content-center">
+        <div class="col-12 col-sm-10 col-md-8 col-lg-6 bg-white mt-5 p-4 shadow-sm">
+            <h2 class="text-center mb-4">ADD CATEGORY</h2>
+
+
+            
+            <form id="addCategoryForm" novalidate>
+                <div class="mb-3">
+                    <label for="catName" class="form-label">Category Name</label>
+                    <input
+                        type="text"
+                        class="form-control"
+                        id="catName"
+                        name="name"
+                        placeholder="Enter category name"
+                        required
+                        maxlength="50"
+                        pattern="^[A-Za-z][A-Za-z0-9\s]*$"
+                        title="Category name must start with a letter and contain only alphabetic characters and spaces."
+    
+                    >
+                    <div class="invalid-feedback">
+                        Please enter a valid category name (must not start with a number, max 50 characters, no special characters).
+                    </div>
+    
+                </div>
+
+
+                <div class="mb-3">
+                    <label for="description" class="form-label">Category Description</label>
+                    <textarea
+                        class="form-control"
+                        id="description"
+                        name="description"
+                        placeholder="Enter category description"
+                        rows="3"
+                        required
+                        
+                    ></textarea>
+                    <div class="invalid-feedback">
+                        Please provide a valid description.
+                    </div>
+                </div>
+
+                <div class="d-grid">
+                    <button type="submit" class="btn btn-primary">Add Category</button>
+                </div>
+            </form>
+        </div>
+    </div>
+
+    <script>
+        document.getElementById('addCategoryForm').addEventListener('submit',  function (event) {
+            event.preventDefault();
+
+            this.querySelectorAll('.is-invalid').forEach(el => {
+                el.classList.remove('is-invalid');
+            });
+
+            const form = event.target     //added now
+            const catNameInput = document.getElementById('catName');
+            const descriptionInput = document.getElementById('description');
+            const submitBtn = form.querySelector('button[type="submit"]');     // this is in 'added now' line
+
+            // Reset validation highlights
+            catNameInput.classList.remove('is-invalid');
+            descriptionInput.classList.remove('is-invalid');
+
+            // Show loading state
+            submitBtn.disabled = true;
+            submitBtn.innerHTML = '<span class="spinner-border spinner-border-sm me-2"></span>Adding...';
+
+            fetch('/admin/addcategory', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({
+                    name: catNameInput.value.trim(),
+                    description: descriptionInput.value.trim()
+                })
+            })
+            .then((response) => response.json())
+            .then((result) => {
+                if (result.success) {
+                    Swal.fire({
+                        icon: 'success',
+                        title: 'Category Added!',
+                        text: result.message,
+                        showConfirmButton: false,
+                        timer: 1500
+                    }).then(() => {
+                        window.location.href = '/admin/category';
+                    });
+                } else {
+                    // Show error alert
+                    Swal.fire({
+                        icon: 'error',
+                        title: 'Validation Error',
+                        text: result.message,
+                        confirmButtonColor: '#dc3545'
+                    });
+
+                    // Highlight invalid fields
+                    if (result.message.includes('name')) {
+                        catNameInput.classList.add('is-invalid');
+                    }
+                    if (result.message.includes('description')) {
+                        descriptionInput.classList.add('is-invalid');
+                    }
+                }
+            })
+            .catch((error) => {
+                console.error('Server Error:', error);
+                Swal.fire({
+                    icon: 'error',
+                    title: 'Server Error',
+                    text: 'An unexpected error occurred. Please try again later.',
+                    confirmButtonColor: '#dc3545'
+                });
+            })
+            .finally(() => {
+                submitBtn.disabled = false;
+                submitBtn.innerHTML = 'Add Category';
+            });
+        });
+    </script>
+</main>
+
+<%- include('../partials/admin/footer') %>

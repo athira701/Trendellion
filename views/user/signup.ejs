@@ -1,0 +1,318 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Trendellion Sign Up</title>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+    <style>
+        body {
+            margin: 0;
+            padding: 0;
+            font-family: Arial, sans-serif;
+            background-color: #1a1a1a;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            min-height: 100vh;
+        }
+
+        .top-banner {
+            position: fixed;
+            top: 0;
+            width: 100%;
+            background-color: #e75480;
+            color: white;
+            text-align: center;
+            padding: 10px;
+            font-size: 16px;
+            z-index: 1000;
+        }
+
+        .top-banner a {
+            color: white;
+            text-decoration: underline;
+            font-weight: bold;
+        }
+
+        .close-button {
+            position: absolute;
+            right: 20px;
+            top: 50%;
+            transform: translateY(-50%);
+            color: white;
+            cursor: pointer;
+            font-size: 18px;
+        }
+
+        .container {
+            background-color: white;
+            padding: 40px;
+            border-radius: 10px;
+            box-shadow: 0 4px 10px rgba(0, 0, 0, 0.1);
+            width: 100%;
+            max-width: 400px;
+        }
+
+        h1 {
+            text-align: center;
+            color: #333;
+            margin-bottom: 30px;
+            font-size: 28px;
+        }
+
+        .form-group {
+            margin-bottom: 20px;
+        }
+
+        label {
+            display: block;
+            margin-bottom: 8px;
+            color: #333;
+            font-size: 14px;
+            text-transform: uppercase;
+            font-weight: bold;
+        }
+
+        .required {
+            color: #e75480;
+            margin-left: 3px;
+        }
+
+        input {
+            width: 100%;
+            padding: 12px;
+            border: 1px solid #ddd;
+            border-radius: 5px;
+            font-size: 14px;
+            box-sizing: border-box;
+            transition: box-shadow 0.3s, border-color 0.3s;
+        }
+
+        input:focus {
+            outline: none;
+            border-color: #e75480;
+            box-shadow: 0 0 5px rgba(231, 84, 128, 0.4);
+        }
+
+        button {
+            width: 100%;
+            padding: 12px;
+            background-color: #e75480;
+            color: white;
+            border: none;
+            border-radius: 5px;
+            font-size: 16px;
+            cursor: pointer;
+            transition: background-color 0.3s;
+        }
+
+        button:hover {
+            background-color: #d64872;
+        }
+
+        @media (max-width: 480px) {
+            .container {
+                padding: 20px;
+            }
+
+            h1 {
+                font-size: 24px;
+            }
+
+            .top-banner {
+                font-size: 14px;
+            }
+        }
+
+        .error-message{
+            color: red;
+            font-size: 0.75rem ;
+            display: none;
+        }
+       
+
+/* Styling for the social-btn container */
+
+
+        
+    </style>
+</head>
+<body>
+    <div class="top-banner">
+        Sign up and get 20% off your first order. 
+        <a href="/signup">Sign Up Now</a>
+        <span class="close-button" onclick="closeBanner()">×</span>
+    </div>
+
+    <div class="container">
+        <h1>Trendellion</h1>
+        <form id="signform" action="/signup" method="post">
+            <div class="form-group">
+                <label>Name</label>
+                <input type="text" class="form-control" name="name" id="name"  placeholder="Enter your name" required>
+                <div id="error1" class="error-message"></div>
+            </div>
+
+            <div class="form-group">
+                <label>Email<span class="required">*</span></label>
+                <input type="email" class="form-control" name="email" id="email"  placeholder="Enter your email" required>
+                <div id="error2" class="error-message"></div>
+            </div>
+
+            <div class="form-group">
+                <label>Mobile No</label>
+                <input type="tel" class="form-control" name="phone" id="phone" placeholder="Enter your mobile number">
+                <div id="error3" class="error-message"></div>
+            </div>
+
+            <div class="form-group">
+                <label>Password<span class="required">*</span></label>
+                <input type="password" class="form-control" name="password" id="password" placeholder="Create a password" required>
+                <div id="error4" class="error-message"></div>
+            </div>
+
+            <div class="form-group">
+                <label>Confirm Password<span class="required">*</span></label>
+                <input type="password" class="form-control" name="cPassword" id="cPassword" placeholder="Confirm your password" required>
+                <div id="error5" class="error-message"></div>
+            </div>
+
+            <%if(locals.message && message.length>0){%>
+                <div class="alert alert-danger text-center"><%=message%></div>
+            <%}%>
+
+
+            <button type="submit">Sign Up</button>
+            
+             
+
+        </form>
+    </div>
+
+    <script>
+        function closeBanner() {
+            const banner = document.querySelector('.top-banner');
+            banner.style.display = 'none';
+        }
+    
+        const nameid = document.getElementById("name");
+        const emailid = document.getElementById("email");
+        const phoneid = document.getElementById("phone");
+        const passid = document.getElementById("password");
+        const cpassid = document.getElementById("cPassword");
+    
+        const error1 = document.getElementById("error1");
+        const error2 = document.getElementById("error2");
+        const error3 = document.getElementById("error3");
+        const error4 = document.getElementById("error4");
+        const error5 = document.getElementById("error5");
+    
+        const signform = document.getElementById("signform");
+    
+        function nameValidateChecking() {
+            const nameval = nameid.value.trim();
+            const namepattern = /^[A-Za-z\s]+$/;
+    
+            if (nameval === "") {
+                error1.style.display = "block";
+                error1.innerHTML = "Please enter a valid name";
+                return false;
+            } else if (!namepattern.test(nameval)) {
+                error1.style.display = "block";
+                error1.innerHTML = "Name can only contain alphabets and spaces";
+                return false;
+            } else {
+                error1.style.display = "none";
+                return true;
+            }
+        }
+    
+        function emailValidateChecking() {
+            const emailval = emailid.value.trim();
+            const emailpattern = /^[a-zA-Z0-9._-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,4}$/;
+    
+            if (emailval === "") {
+                error2.style.display = "block";
+                error2.innerHTML = "Email is required";
+                return false;
+            } else if (!emailpattern.test(emailval)) {
+                error2.style.display = "block";
+                error2.innerHTML = "Invalid email format";
+                return false;
+            } else {
+                error2.style.display = "none";
+                return true;
+            }
+        }
+    
+        function phoneValidateChecking() {
+            const phoneval = phoneid.value.trim();
+    
+            if (phoneval === "") {
+                error3.style.display = "block";
+                error3.innerHTML = "Enter a valid phone number";
+                return false;
+            } else if (phoneval.length !== 10 || isNaN(phoneval)) {
+                error3.style.display = "block";
+                error3.innerHTML = "Phone number must be 10 digits";
+                return false;
+            } else {
+                error3.style.display = "none";
+                return true;
+            }
+        }
+    
+        function passValidateChecking() {
+            const passval = passid.value;
+            const cpassval = cpassid.value;
+            const alpha = /[a-zA-Z]/;
+            const digit = /\d/;
+            let isValid = true;
+    
+            if (passval.length < 8) {
+                error4.style.display = "block";
+                error4.innerHTML = "Password should contain at least 8 characters";
+                isValid = false;
+            } else if (!alpha.test(passval) || !digit.test(passval)) {
+                error4.style.display = "block";
+                error4.innerHTML = "Password should contain both letters and numbers";
+                isValid = false;
+            } else {
+                error4.style.display = "none";
+            }
+    
+            if (passval !== cpassval) {
+                error5.style.display = "block";
+                error5.innerHTML = "Passwords do not match";
+                isValid = false;
+            } else {
+                error5.style.display = "none";
+            }
+    
+            return isValid;
+        }
+    
+        // Event Listener for Form Submission
+        document.addEventListener("DOMContentLoaded", function () {
+            if (!nameid || !emailid || !phoneid || !passid || !error1 || !error2 || !error3 || !error4 || !error5 || !signform) {
+                console.error("One or more elements not found");
+                return;
+            }
+    
+            signform.addEventListener("submit", function (e) {
+                const isNameValid = nameValidateChecking();
+                const isEmailValid = emailValidateChecking();
+                const isPhoneValid = phoneValidateChecking();
+                const isPasswordValid = passValidateChecking();
+    
+                if (!isNameValid || !isEmailValid || !isPhoneValid || !isPasswordValid) {
+                    e.preventDefault(); // Prevent form submission if there are errors
+                }
+            });
+        });
+    </script>
+    
+ 
+</body>
+</html>
