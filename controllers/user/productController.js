@@ -6,6 +6,7 @@ const Category = require('../../models/categorySchema');
 
 
 const getProductDetails = async (req,res) => {
+   
     try {
         const { id } = req.params;
         const product = await Product.findById(id);

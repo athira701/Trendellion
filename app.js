@@ -31,6 +31,11 @@ app.use((req,res,next)=>{
     res.set('cache-control','no-store')
     next()
 })
+app.use((req, res, next) => {
+    res.locals.user = req.session.user || null;  
+    next();
+});
+
 
 db()
 

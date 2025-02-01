@@ -7,20 +7,6 @@ const multer=require('multer')
 
 // const sharp = require('sharp')
 
-
-// const getProductPage = async (req,res)=>{
-//     try {
-//         const products = await Product.find({})
-//         console.log(products)
-
-//         res.render('admin/allProduct',{
-//             products
-//         })
-//     } catch (error) {
-//         console.log('error loading product page',error)
-        
-//     }
-// }
 const getProductPage = async (req, res) => {
     try {
         console.log("hellooo");
@@ -264,6 +250,25 @@ const editProduct = async (req, res) => {
             visibility
         } = req.body;
 
+        if (!/^[A-Za-z][A-Za-z ]*$/.test(productName)) {
+            return res.status(400).json({ success: false, message: 'Product name should contain only alphabets and not start with a space.' });
+        }
+        if (!description.trim() || description.length < 10 || description.length > 250) {
+            return res.status(400).json({ success: false, message: 'Description must be between 10 to 250 characters and should not start with a space.' });
+        }
+        if (!/^[1-9][0-9]*$/.test(price) || price <= 0) {
+            return res.status(400).json({ success: false, message: 'Price must be a positive number and not zero.' });
+        }
+        if (!/^[1-9][0-9]*$/.test(sPrice) || sPrice < 0 || sPrice > price) {
+            return res.status(400).json({ success: false, message: 'Sale Price must be a non-negative number and less than or equal to Price.' });
+        }
+        if (!/^[A-Za-z]+$/.test(color)) {
+            return res.status(400).json({ success: false, message: 'Color should contain only alphabets and no numbers.' });
+        }
+        if (!/^[1-9][0-9]*$/.test(quantity) || quantity <= 0) {
+            return res.status(400).json({ success: false, message: 'Quantity must be a positive number and not zero.' });
+        }
+
         // Find the existing product
         const product = await Product.findById(productId);
         if (!product) {
@@ -318,6 +323,39 @@ const editProduct = async (req, res) => {
     }
 }
 
+const updateProductImages = async (req, res) => {
+    try {
+        const { productId, imageIndex } = req.body; // Get product ID and image index from request
+        const product = await Product.findById(productId);
+
+        console.log("ImageInfo & imageIndex:",productId, imageIndex)
+
+        if (!product) {
+            return res.status(404).json({ message: "Product not found" });
+        }
+
+        if (!req.file) {
+            return res.status(400).json({ message: "No file uploaded" });
+        }
+
+        // Ensure the productImage array exists
+        if (!product.productImage || !Array.isArray(product.productImage)) {
+            product.productImage = [];
+        }
+
+        // Update only the selected image index
+        product.productImage[imageIndex] = req.file.filename; 
+
+        // Save the updated product
+        await product.save();
+
+        res.json({ success: true, updatedImage: product.productImage });
+    } catch (error) {
+        console.error(error);
+        res.status(500).json({ message: "Error updating image", error });
+    }
+};
+
 module.exports = {
     getProductPage,
     addProduct,
@@ -325,5 +363,6 @@ module.exports = {
     deleteProduct,
     restoreProduct,
     loadEditProduct ,
-    editProduct
+    editProduct,
+    updateProductImages
 }

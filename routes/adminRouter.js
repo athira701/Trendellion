@@ -22,12 +22,9 @@ const storage = multer.diskStorage({
 const upload = multer({ storage });
 
 
-//Login Management
+//Login , DashBoard, Logout management
 router.get("/login",adminController.loadLogin)
 router.post("/dashboard",adminController.login)
-//route for render dashboard
-// router.post("/",adminController.loadDashboard)
-
 router.get('/dashboard',isAdminAuthenticated,adminController.loadDashboard)
 router.get("/pageerror",adminController.pageerror)
 router.get("/logout",adminController.logout)
@@ -56,6 +53,7 @@ router.patch('/blockUnblockCategory', categoryController.blockOrUnblockCategory)
 router.get('/allProduct',productController.getProductPage)
 router.get("/addProduct",productController.getProductAddPage)
 router.post('/addProduct', upload.array('cropImages', 4),productController.addProduct)
+router.post("/update-product-image", upload.single("image"),productController.updateProductImages);
 router.post('/deleteProduct/:id', productController.deleteProduct);
 router.post('/restoreProduct/:id', productController.restoreProduct);
 router.get('/editProduct',productController.loadEditProduct)

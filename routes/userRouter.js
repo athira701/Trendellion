@@ -53,6 +53,8 @@ router.get('/auth/google/callback', passport.authenticate('google', {
 router.get('/product/:id',productController.getProductDetails)
 router.get('/category',categoryController.displayCategoryProducts)
 
+router.get('/profile',userController.loadProfile)
 
+router.post('/updateProfile',userController.updateProfile)
 
 module.exports = router

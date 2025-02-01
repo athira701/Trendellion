@@ -56,8 +56,6 @@ const isAuthenticated = (req, res, next) => {
     next();
 };
 
-
-
 const checkUserBlocked = async (req, res, next) => {
     try {
         console.log("entering the user blocked middleare");

@@ -72,6 +72,12 @@
         document.querySelectorAll('.block-unblock').forEach(button => {
             button.addEventListener('click', function () {
                 const user_id = this.dataset.userId;
+                const action = this.dataset.status;
+
+                const confirmMessage = `Are you sure you want to ${action} this user?`;
+                if (!confirm(confirmMessage)) {
+                    return;
+                }
 
                 fetch('/admin/blockAndUnblock', {
                     method: 'PATCH',
@@ -90,6 +96,7 @@
                         statusBadge.classList.toggle('alert-success', !data.is_blocked);
 
                         actionButton.textContent = data.is_blocked ? 'Unblock' : 'Block';
+                        actionButton.dataset.status = data.is_blocked ? 'unblock' : 'block';
                     } else {
                         console.error(data.message);
                     }

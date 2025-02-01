@@ -1,6 +1,7 @@
 const User = require("../../models/userSchema")
 const Product = require('../../models/productSchema')
 const Category = require('../../models/categorySchema')
+const Address = require('../../models/addressSchema')
 const nodemailer = require('nodemailer')
 const bcrypt = require('bcrypt')
 const env = require("dotenv").config()
@@ -421,6 +422,43 @@ const loadCart = async (req,res) => {
     }
 }
 
+const loadProfile = async (req,res) => {
+    try {
+        res.render('user/userProfile')
+    } catch (error) {
+        
+    }
+
+}
+
+const updateProfile = async (req,res) =>{
+    try {
+        const { name, email, phone } = req.body; 
+        const userId = req.user.id; 
+
+      
+        if (!name || !email || !phone) {
+            return res.status(400).json({ error: 'All fields are required' });
+        }
+
+       
+        const updatedUser = await user.findByIdAndUpdate(
+            userId,
+            { name, email, phone },
+            { new: true, runValidators: true } 
+        );
+
+        if (!updatedUser) {
+            return res.status(404).json({ error: 'User not found' });
+        }
+        
+        res.redirect('/user/userProfile');
+    } catch (error) {
+        console.error('Error updating profile:', error);
+        res.status(500).json({ error: 'An error occurred while updating the profile' });
+    }
+};
+
 
 module.exports = {
     homepage,
@@ -436,5 +474,7 @@ module.exports = {
     logout,
     loadHomePage,
     shopPageInfo,
-    loadCart
+    loadProfile,
+    updateProfile,
+    loadCart,
 }

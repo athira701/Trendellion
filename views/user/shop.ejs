@@ -175,8 +175,8 @@
                         <a href="/product/<%= product._id %>" class="block p-4">
                             <h3 class="font-semibold text-lg text-gray-800 truncate"><%= product.productName %></h3>
                             <div class="flex items-center justify-between mt-2">
-                                <span class="text-lg font-bold text-green-600"><%= product.salePrice %></span>
-                                <span class="text-sm line-through text-gray-500"><%= product.regularPrice %></span>
+                                <span class="text-lg font-bold text-green-600">₹<%= product.salePrice %></span>
+                                <span class="text-sm line-through text-gray-500">₹<%= product.regularPrice %></span>
                             </div>
                             <div class="flex items-center mt-2">
                                 <span class="text-yellow-500">★★★★★</span>
