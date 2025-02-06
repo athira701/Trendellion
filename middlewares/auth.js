@@ -84,6 +84,14 @@ const checkUserBlocked = async (req, res, next) => {
         res.status(500).send('Internal Server Error');
     }
 };
+const addressMiddleware = (req, res, next) => {
+    if (req.session.user && req.session.user._id) {
+        req.user = req.session.user; // Set user to req.user
+        console.log('User ID set in middleware:', req.user._id); // Log the user ID
+        return next();
+    }
+    return res.status(401).json({ error: 'User not authenticated' });
+};
 
 
 
@@ -93,5 +101,6 @@ module.exports ={
     adminAuth,
     isAdminAuthenticated,
     isAuthenticated,
-    checkUserBlocked   
+    checkUserBlocked,
+    addressMiddleware    
 }

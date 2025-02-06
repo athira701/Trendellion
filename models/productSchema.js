@@ -9,38 +9,51 @@ const productSchema = new Schema({
         },
         description:{
             type: String
-        },
-        
+        },       
         category:{
             type: Schema.Types.ObjectId,
             ref: 'Category', 
             required: true 
         },
         regularPrice: {
-            type: Number, required: true 
+            type: Number,
+            required: true 
         },
         salePrice: { 
-            type: Number, required: true 
+            type: Number,
+            required: true 
         },
         quantity: { 
-            type: Number, required: true 
+            type: Number,
+            required: true 
+        },
+        size: {
+            type: [String],
+            required: false
         },
         color: { 
-            type: String, required: true 
+            type: String,
+            required: true 
         },
         productImage: {
-             type: [String], required: true 
+             type: [String],
+             required: true 
+        },
+        rating:{
+            type: Number,
+            default: 0
         }, 
         isBlocked: { 
-            type: Boolean, default: false 
+            type: Boolean,
+            default: false 
         },
         status: {
             type: String,
             enum: ['Available', 'Out of Stock', 'Discontinued'],
+            required: true,
             default: 'Available',
         },
-    },
-    { timestamps: true }
+    },{ timestamps: true }
 );
 
 

@@ -4,12 +4,13 @@ const User = require("../models/userSchema")
 const userController = require("../controllers/user/userController")
 const productController = require('../controllers/user/productController')
 const categoryController = require('../controllers/user/categoryController')
+const addressController = require('../controllers/user/addressController')
 const passport = require('passport')
-const { isAuthenticated, isNotAuthenticated,checkUserBlocked } = require('../middlewares/auth')
+const { isAuthenticated, isNotAuthenticated,checkUserBlocked, addressMiddleware } = require('../middlewares/auth')
 
 
 
-
+//Login & SignUp Management
 router.get("/pageNotFound",userController.pageNotFound)
 router.get("/",isAuthenticated,userController.loadHomePage)
 router.get("/login",isAuthenticated,userController.loginPage)
@@ -48,13 +49,22 @@ router.get('/auth/google/callback', passport.authenticate('google', {
 })
 
 
-
-//router.get('/category/:id',category)
 router.get('/product/:id',productController.getProductDetails)
 router.get('/category',categoryController.displayCategoryProducts)
 
+//profile
 router.get('/profile',userController.loadProfile)
+router.post('/updateProfile',addressMiddleware,userController.updateProfile)
 
-router.post('/updateProfile',userController.updateProfile)
+//Address Management
+router.get('/addresses',addressController.getAddresses)
+router.post('/addAddress',addressController.addAddress)
+router.get('/address/:id',addressController.getEditAddress)
+router.put('/address/:id',addressMiddleware,addressController.editAddress);
+router.delete('/address/:id',addressMiddleware,addressController.deleteAddress)
+//router.post("/setDefaultAddress/:addressId", addressController.setDefaultAddress);
+
+//Cart Management
+
 
 module.exports = router

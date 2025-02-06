@@ -107,7 +107,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title></title>
+    <title>Single Product Page</title>
     <link href="https://cdn.jsdelivr.net/npm/tailwindcss@2.2.19/dist/tailwind.min.css" rel="stylesheet">
     <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/css/all.min.css" rel="stylesheet">
     <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/sweetalert2@11.0.19/dist/sweetalert2.min.css">
@@ -546,16 +546,28 @@
                     </button>
                 </div>
 
-                <div class="text-3xl font-bold text-red-500 mb-4">
+                <div class="text-3xl font-bold text-pink-500 mb-4">
                     ₹<%= product.salePrice %>
                 </div>
 
-                <div class="mb-4">
+                <!-- <div class="mb-4">
                     <h3 class="font-semibold mb-2">Color</h3>
                     <div class="flex space-x-3">
                         <div class="w-8 h-8 rounded-full bg-gray-800 cursor-pointer color-option active"></div>
                         <div class="w-8 h-8 rounded-full bg-red-500 cursor-pointer color-option"></div>
                     </div>
+                </div> -->
+                <div class="mb-8 ">
+                    <label for="size-select" class="block text-gray-700 font-medium mb-2">Select Size</label>
+                    <select id="size-select" class="w-1/4 border border-gray-300 rounded-lg p-3 focus:ring-2 focus:ring-pink-300 focus:border-transparent bg-white">
+                        <% if (product.size && product.size.length > 0) { %>
+                            <% product.size.forEach(size => { %>
+                                <option value="<%= size %>"><%= size %></option>
+                            <% }); %>
+                        <% } else { %>
+                            <option value="">N/A</option>
+                        <% } %>
+                    </select>
                 </div>
 
                 <div class="mb-4">
@@ -563,20 +575,15 @@
                     <div class="quantity-controls">
                         <button class="decrement" data-product-id="<%= product._id %>">-</button>
                         <input 
-  type="number" 
-  value="1" 
-  min="1" 
-  data-product-id="<%= product._id %>" 
-  product-stock="<%= product.quantity %>" 
-  class="update-quantity">
+                        type="number" 
+                        value="1" 
+                        min="1" 
+                        data-product-id="<%= product._id %>" 
+                        product-stock="<%= product.quantity %>" 
+                        class="update-quantity">
 
                         <button class="increment" data-product-id="<%= product._id %>">+</button>
-                      </div>
-                      
-                      
-                      
-                      
-                      
+                      </div>      
                 </div>
                
                     <div class="mb-4">
@@ -590,6 +597,7 @@
                                 <%= product.status %>
                             </span>
                         </p>
+                        <p class="text-gray-700 leading-relaxed"><%= product.description %></p>
                     </div>
       
                 
@@ -601,7 +609,7 @@
                     <button 
                     type="button"
                     id="addToCartButton"
-                    class="w-full border border-red-500 text-red-500 py-3 rounded-md hover:bg-red-500 hover:text-white transition duration-300">
+                    class="w-full border border-red-500 text-pink-500 py-3 rounded-md hover:bg-pink-500 hover:text-white transition duration-300">
                     Add To Cart
                   </button>
                 </form>
@@ -614,7 +622,7 @@
                     </form>
           
 
-                    <button class="w-full border border-red-500 text-red-500 py-3 rounded-md hover:bg-red-500 hover:text-white transition duration-300">
+                    <button class="w-full border border-red-500 text-pink-500 py-3 rounded-md hover:bg-pink-500 hover:text-white transition duration-300">
                         Buy Now
                     </button>
                 </div>

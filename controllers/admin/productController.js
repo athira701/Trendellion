@@ -167,10 +167,11 @@ const addProduct = async (req, res) => {
 
         // If there are validation errors, return them
      
-        console.log("heloooo")
+        console.log("heloooo1")
         // Map uploaded images
         const images = files.map(file => file.filename);
-        console.log("heloooo")
+        console.log("heloooo2")
+
         // Create product object
         const product = new Product({
             productName: productName,
@@ -181,6 +182,7 @@ const addProduct = async (req, res) => {
             salePrice: sPrice,
             quantity,
             color: color,
+            size:details.size || [],
             productImage: images,
             status: safeTrim(details.visibility) || "Available"
         });
@@ -188,6 +190,7 @@ const addProduct = async (req, res) => {
         // Save product to database
         const savedProduct = await product.save();
         console.log("product",savedProduct)
+
         res.status(200).json({ 
             success: true, 
             message: 'Product added successfully.', 
@@ -214,15 +217,18 @@ const loadEditProduct = async (req, res) => {
 
         const proData = await Product.findById({ _id: id })
         console.log("product",proData)
+
+        const size = proData ? proData.size || [] : [];
+
         const categories = await Category.find()
         const selectedCategory = await Category.findById({ _id: proData.category })
         console.log("sele",selectedCategory)
         console.log("cattt",categories);
-
         console.log(proData);
+
         if (proData) {
             console.log('reached here');
-            res.render('admin/editProduct', { product: proData,  categories,selectedCategory })
+            res.render('admin/editProduct', { product: proData,  categories,selectedCategory,size })
         } else {
             res.redirect('/admin/allProduct')
         }
@@ -244,6 +250,7 @@ const editProduct = async (req, res) => {
             price,
             sPrice,
             color,
+            size,
             quantity,
             description,
             categoryId,
@@ -283,6 +290,7 @@ const editProduct = async (req, res) => {
         product.regularPrice = price;
         product.salePrice = sPrice;
         product.color = color;
+        product.size = size;
         product.quantity = quantity;
         product.description = description;
         product.category = categoryId;

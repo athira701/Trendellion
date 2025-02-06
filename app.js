@@ -4,10 +4,14 @@ const adminRouter = require('./routes/adminRouter')
 const path = require('path')
 require("dotenv").config()
 const session = require('express-session')
+const bodyParser = require('body-parser')
 const passport = require('./config/passport')
 const db = require('./config/db')
 
 const app = express()
+
+app.use(bodyParser.json());  
+app.use(bodyParser.urlencoded({ extended: true }));
 
 app.use(express.json());
 app.use(express.urlencoded({extended:true}));
@@ -47,7 +51,6 @@ app.use((err, req, res, next) => {
     console.error(err.stack);
     res.status(500).send('Something broke!');
 });
-
 
 const PORT = process.env.PORT || 3000;
 

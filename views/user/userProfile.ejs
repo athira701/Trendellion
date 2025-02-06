@@ -151,6 +151,10 @@
              margin-left: auto;
              margin-right: auto;
         }
+        .fashion-button:hover{
+            background-color: rgb(248, 209, 235) ;
+
+        }
 
 
         @media (max-width: 768px) {
@@ -181,13 +185,9 @@
                 <i class="fas fa-map-marker-alt"></i>
                 Profile
             </a>
-            <a class="menu-item">
+            <a href="/addresses" class="menu-item">
                 <i class="fas fa-map-marker-alt"></i>
                 Manage Address
-            </a>
-            <a class="menu-item">
-                <i class="fas fa-lock"></i>
-                Change Password
             </a>
             <a class="menu-item">
                 <i class="fas fa-shopping-bag"></i>
@@ -200,11 +200,7 @@
             <a class="menu-item">
                 <i class="fas fa-wallet"></i>
                 Wallets
-            </a>
-            <a class="menu-item">
-                <i class="fas fa-heart"></i>
-                Manage Wishlist
-            </a>         
+            </a>        
             <a class="menu-item">
                 <i class="fas fa-sign-out-alt"></i>
                 Log Out
@@ -218,7 +214,11 @@
                 <div class="mb-12">
                     <div class="flex justify-between items-center mb-8">
                         <h2 class="text-3xl font-light tracking-wide">Personal Details</h2>
-                        <a href="/updateProfile">Edit</a>
+                        <button onclick="toggleEditMode()" 
+                                    class="fashion-button px-6 py-2 rounded-lg text-sm">
+                                <i class="fas fa-edit"></i>
+                                <span>Edit</span>
+                            </button>
                     </div>
 
                     <!-- View Mode -->
@@ -281,13 +281,74 @@
 </body>
 </html>
 <%-include('../../views/partials/user/footer')%>
-
+<script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
 <script>
     document.querySelectorAll(".menu-item").forEach(item => {
     item.addEventListener("click", function () {
         document.querySelector(".menu-item.active")?.classList.remove("active");
         this.classList.add("active");
     });
+});
+
+// Toggle edit mode
+function toggleEditMode() {
+            const viewMode = document.getElementById('viewMode');
+            const editMode = document.getElementById('editMode');
+            const editButton = document.querySelector('.fashion-button');
+
+            if (viewMode.classList.contains('hidden')) {
+                viewMode.classList.remove('hidden');
+                editMode.classList.add('hidden');
+                editButton.innerHTML = '<i class="fas fa-edit"></i><span>Edit</span>';
+            } else {
+                viewMode.classList.add('hidden');
+                editMode.classList.remove('hidden');
+                editButton.innerHTML = '<i class="fas fa-times"></i><span>Cancel</span>';
+            }
+        }
+document.getElementById('editMode').addEventListener('submit', async (event) => {
+    event.preventDefault(); // Prevent default form submission
+
+    const formData = new FormData(event.target);
+
+    try {
+        const response = await fetch('/updateProfile', {
+            method: 'POST',
+            body: new URLSearchParams(formData),
+            headers: {
+                'Content-Type': 'application/x-www-form-urlencoded'
+            }
+        });
+
+        const data = await response.json();
+
+        if (response.ok) {
+            // Show success alert using SweetAlert2
+            Swal.fire({
+                icon: 'success',
+                title: 'Updated profile successfully!',
+                showConfirmButton: false,
+                timer: 1500 // Auto close after 1.5 seconds
+            }).then(() => {
+                // Redirect after showing the success message
+                window.location.href = '/profile';
+            });
+        } else {
+            // Show error alert
+            Swal.fire({
+                icon: 'error',
+                title: 'Update failed!',
+                text: data.error || 'Something went wrong. Please try again.',
+            });
+        }
+    } catch (error) {
+        console.error("Error:", error);
+        Swal.fire({
+            icon: 'error',
+            title: 'Oops!',
+            text: 'An error occurred. Please try again later.',
+        });
+    }
 });
 
 </script>

@@ -18,10 +18,10 @@ const addressSchema = new Schema({
             type: String,
             required:true
         },
-        street:{
-            type : String,
-            required : true,
-        },
+        // street:{
+        //     type : String,
+        //     required : true,
+        // },
         city:{
             type: String,
             required :true,
@@ -37,7 +37,7 @@ const addressSchema = new Schema({
         pincode: {
             type : Number,
             required:true,
-        },
+        }, 
         phone:{
             type : String,
             required :true,
@@ -51,7 +51,7 @@ const addressSchema = new Schema({
             default: false
         }
     }]
-})
+},{ timestamps: true })
 
 
 const Address = mongoose.model("Address",addressSchema);

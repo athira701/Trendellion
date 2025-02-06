@@ -432,9 +432,15 @@ const loadProfile = async (req,res) => {
 }
 
 const updateProfile = async (req,res) =>{
-    try {
-        const { name, email, phone } = req.body; 
-        const userId = req.user.id; 
+    try {       
+        const { name, email, phone } = req.body;
+        console.log("Request Body:", req.body); 
+
+        if (!req.user || !req.user._id) {                                            //
+            return res.status(401).json({ error: 'Unauthorized. Please log in.' }); //
+        }                                                                           //
+        const userId = req.user._id; 
+        console.log("req.user.id:",req.user._id)
 
       
         if (!name || !email || !phone) {
@@ -442,17 +448,18 @@ const updateProfile = async (req,res) =>{
         }
 
        
-        const updatedUser = await user.findByIdAndUpdate(
+        const updatedUser = await User.findByIdAndUpdate(
             userId,
             { name, email, phone },
             { new: true, runValidators: true } 
         );
+        console.log("updatedUser:",updatedUser)
 
         if (!updatedUser) {
             return res.status(404).json({ error: 'User not found' });
         }
-        
-        res.redirect('/user/userProfile');
+        res.json({ success: true, message: "Profile updated successfully" });
+        // res.redirect('/user/userProfile');
     } catch (error) {
         console.error('Error updating profile:', error);
         res.status(500).json({ error: 'An error occurred while updating the profile' });
