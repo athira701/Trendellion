@@ -1,0 +1,109 @@
+<!-- views/order-confirmation.ejs -->
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Trendellion - Order Confirmation</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+            font-family: Arial, sans-serif;
+        }
+
+        .header {
+            background-color:  rgb(206, 67, 155);
+            padding: 1rem;
+            text-align: center;
+        }
+
+        .header h1 {
+            color: #000;
+            font-size: 1.5rem;
+        }
+
+        .container {
+            max-width: 600px;
+            margin: 2rem auto;
+            padding: 1rem;
+            text-align: center;
+        }
+
+        .success-message {
+            color: #FFA500;
+            font-size: 1.2rem;
+            margin: 2rem 0;
+        }
+
+        .order-details {
+            margin: 2rem 0;
+        }
+
+        .order-id {
+            color: #333;
+            margin: 0.5rem 0;
+        }
+
+        .thank-you {
+            color: #333;
+            margin: 2rem 0;
+        }
+
+        .button {
+            display: block;
+            width: 100%;
+            max-width: 300px;
+            margin: 1rem auto;
+            padding: 0.8rem;
+            background-color: #FF69B4;
+            color: white;
+            text-decoration: none;
+            border-radius: 5px;
+            border: none;
+            cursor: pointer;
+            transition: background-color 0.3s ease;
+        }
+
+        .button:hover {
+            background-color: #FF1493;
+        }
+
+        @media (max-width: 480px) {
+            .container {
+                padding: 1rem;
+            }
+
+            .header h1 {
+                font-size: 1.2rem;
+            }
+
+            .success-message {
+                font-size: 1rem;
+            }
+        }
+    </style>
+</head>
+<body>
+    <header class="header">
+        <h1>Trendellion</h1>
+    </header>
+
+    <main class="container">
+        <div class="success-message">
+            Your Order Placed Successfully....
+        </div>
+
+        <div class="order-details">
+            <h2>Your order id:</h2>
+            <p class="order-id"><%= orderId %></p>
+        </div>
+
+        <p class="thank-you">Thank You for Shopping Visit Again</p>
+
+        <a href="/orders" class="button">View Orders</a>
+        <a href="/shop" class="button">Continue shopping</a>
+    </main>
+</body>
+</html>

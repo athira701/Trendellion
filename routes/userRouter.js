@@ -4,9 +4,12 @@ const User = require("../models/userSchema")
 const userController = require("../controllers/user/userController")
 const productController = require('../controllers/user/productController')
 const categoryController = require('../controllers/user/categoryController')
+const cartController = require('../controllers/user/cartController')
 const addressController = require('../controllers/user/addressController')
+const checkoutController = require('../controllers/user/checkoutController')
+const orderController = require('../controllers/user/orderController')
 const passport = require('passport')
-const { isAuthenticated, isNotAuthenticated,checkUserBlocked, addressMiddleware } = require('../middlewares/auth')
+const { isAuthenticated, isUserAuthenticated,checkUserBlocked, addressMiddleware } = require('../middlewares/auth')
 
 
 
@@ -26,7 +29,7 @@ router.get("/logout",userController.logout)
 
 // router.get('/shop',userController.loadShopPage)
 router.get('/shop',userController.shopPageInfo)
-router.get('/cart',checkUserBlocked,userController.loadCart);
+
 
 router.get('/auth/google',passport.authenticate('google',{scope:['profile','email'],prompt: 'select_account'}))
 router.get('/auth/google/callback', passport.authenticate('google', { 
@@ -60,11 +63,24 @@ router.post('/updateProfile',addressMiddleware,userController.updateProfile)
 router.get('/addresses',addressController.getAddresses)
 router.post('/addAddress',addressController.addAddress)
 router.get('/address/:id',addressController.getEditAddress)
-router.put('/address/:id',addressMiddleware,addressController.editAddress);
+router.put('/address/:id',addressMiddleware,addressController.editAddress)
 router.delete('/address/:id',addressMiddleware,addressController.deleteAddress)
+router.put('/address/default/:addressId', addressController.setDefaultAddress);
 //router.post("/setDefaultAddress/:addressId", addressController.setDefaultAddress);
 
 //Cart Management
+router.get('/cart',cartController.getCartPage)
+router.post('/addToCart/:id', cartController.addToCart)
+router.delete('/delete/:productId',cartController.deleteCartItem)
+router.post('/update', cartController.updateCart);
+
+//Checkout and orders
+router.get('/checkout',checkoutController.getCheckoutPage)
+router.post('/orderPlaced', orderController.placeOrder);
+router.get('/placedOrder',orderController.orderPlacedpage)
+router.get('/orders',orderController.getOrderPage)
+router.get('/orders/:orderId',orderController.getOrderDetails)
+
 
 
 module.exports = router

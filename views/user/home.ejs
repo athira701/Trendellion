@@ -6,6 +6,7 @@
     <title>Trendellion - Fashion Store</title>
     <script src="https://cdn.tailwindcss.com"></script>
     <link href="https://fonts.googleapis.com/css2?family=Playfair+Display:wght@400;700&display=swap" rel="stylesheet">
+    <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11.0.19/dist/sweetalert2.all.min.js"></script>
     <style>
         body {
             font-family: 'Playfair Display', serif;
@@ -177,12 +178,27 @@
                                 <span class="text-yellow-500">★★★★★</span>
                                 <span class="text-sm text-gray-500 ml-2">(88 reviews)</span>
                             </div>
+                            
                         </a>
+                        <div class="mb-8 ">
+                            <label for="size-select" class="block text-gray-700 font-medium mb-2">Select Size</label>
+                            <select id="size-select" class="w-1/4 border border-gray-300 rounded-lg p-3 focus:ring-2 focus:ring-pink-300 focus:border-transparent bg-white">
+                                <% if (product && product.stock && product.stock.length > 0) { %>
+                                    <% product.stock.forEach(function(stock) { %>
+                                      <option value="<%= stock %>"><%= stock.size %></option>
+                                    <% }); %>
+                                  <% } else { %>
+                                    <option value="">N/A</option>
+                                  <% } %>
+                                  
+                                  
+                            </select>
+                        </div>
 
                         <!-- Add to Cart Button -->
                         <div class="p-4">
                             <input type="hidden" name="quantity" id="quantity-input" value="1">
-                            <button class="w-full bg-black text-white py-2 rounded hover:bg-gray-800 transition-colors" data-product-id="<%= product._id %>">
+                            <button class="add-to-cart-button" data-product-id="<%= product._id %>">
                                 Add to Cart
                             </button>
                         </div>
@@ -472,3 +488,62 @@
 </html>
 
 <%-include('../../views/partials/user/footer')%>
+<script>
+    document.addEventListener("DOMContentLoaded", () => {
+    // Select all "Add to Cart" buttons
+    const addToCartButtons = document.querySelectorAll(".add-to-cart-button");
+
+    addToCartButtons.forEach(button => {
+        button.addEventListener("click", async event => {
+            const productId = button.getAttribute("data-product-id");
+            console.log(productId)
+            console.log("helooooooooo")
+
+            try {
+                // Send the Add to Cart request to the backend
+                const response = await fetch(`/addToCart/${productId}`, {
+                    method: "POST",
+                    headers: {
+                        "Content-Type": "application/json",
+                    },
+                    body: JSON.stringify({ quantity: 1 }),
+                });
+
+                const result = await response.json();
+
+                if (response.ok) {
+                    // Success SweetAlert
+                    Swal({
+                        title: "Added to Cart!",
+                        text: `The product has been successfully added to your cart.`,
+                        icon: "success",
+                        button: "OK",
+                    });
+
+                    // Update button UI
+                    button.classList.add("clicked");
+                    button.textContent = "Added";
+                    button.disabled = true;
+                } else {
+                    // SweetAlert for backend validation errors
+                    Swal({
+                        title: "Failed to Add to Cart",
+                        text: result.message || "An error occurred while adding the product to your cart.",
+                        icon: "error",
+                        button: "Try Again",
+                    });
+                }
+            } catch (error) {
+                // General Error SweetAlert
+                Swal({
+                    title: "Error",
+                    text: "An unexpected error occurred. Please try again later.",
+                    icon: "error",
+                    button: "OK",
+                });
+                console.error("Error:", error);
+            }
+        });
+    });
+});
+</script>

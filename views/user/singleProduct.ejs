@@ -560,31 +560,33 @@
                 <div class="mb-8 ">
                     <label for="size-select" class="block text-gray-700 font-medium mb-2">Select Size</label>
                     <select id="size-select" class="w-1/4 border border-gray-300 rounded-lg p-3 focus:ring-2 focus:ring-pink-300 focus:border-transparent bg-white">
-                        <% if (product.size && product.size.length > 0) { %>
-                            <% product.size.forEach(size => { %>
-                                <option value="<%= size %>"><%= size %></option>
+                        <% if (product && product.stock && product.stock.length > 0) { %>
+                            <% product.stock.forEach(function(stock) { %>
+                              <option value="<%= stock.size %>"><%= stock.size %></option>
                             <% }); %>
-                        <% } else { %>
+                          <% } else { %>
                             <option value="">N/A</option>
-                        <% } %>
+                          <% } %>
+                          
+                          
                     </select>
                 </div>
 
-                <div class="mb-4">
+                <!-- <div class="mb-4">
                     <h3 class="font-semibold mb-2">Quantity</h3>
                     <div class="quantity-controls">
-                        <button class="decrement" data-product-id="<%= product._id %>">-</button>
-                        <input 
+                      <button class="decrement" data-product-id="<%= product._id %>">-</button>
+                      <input 
                         type="number" 
                         value="1" 
                         min="1" 
                         data-product-id="<%= product._id %>" 
-                        product-stock="<%= product.quantity %>" 
+                        product-stock="<%= product.stock && product.stock.length > 0 ? product.stock[0].quantity : 0 %>" 
                         class="update-quantity">
-
-                        <button class="increment" data-product-id="<%= product._id %>">+</button>
-                      </div>      
-                </div>
+                      <button class="increment" data-product-id="<%= product._id %>">+</button>
+                    </div>      
+                  </div>
+                  
                
                     <div class="mb-4">
                         <p class="text-gray-700 font-medium">
@@ -599,12 +601,12 @@
                         </p>
                         <p class="text-gray-700 leading-relaxed"><%= product.description %></p>
                     </div>
-      
+       -->
                 
                 
                 
-                <!-- Hidden Input Field to Submit Quantity -->
-                <form id="addToCartForm">
+          
+                <form id="addToCartForm"   method="post">
                     <input type="hidden" name="quantity" id="quantity-input" value="1">
                     <button 
                     type="button"
@@ -909,64 +911,125 @@ document.querySelectorAll('.decrement').forEach(button => {
 
 
 
-        // Wishlist Button Toggle
-        document.querySelector('.wishlist-btn').addEventListener('click', function() {
-            this.querySelector('i').classList.toggle('far');
-            this.querySelector('i').classList.toggle('fas');
-        });
+        // // Wishlist Button Toggle
+        // document.querySelector('.wishlist-btn').addEventListener('click', function() {
+        //     this.querySelector('i').classList.toggle('far');
+        //     this.querySelector('i').classList.toggle('fas');
+        // });
 
+        //addToCart Button
 
+    document.addEventListener('DOMContentLoaded', function() {
+        console.log("helo")
+        const addToCartForm = document.getElementById('addToCartForm');
+        const addToCartButton = document.getElementById('addToCartButton');
 
-        document.getElementById('addToCartButton').addEventListener('click', async function () {
-        const quantityInput = document.querySelector('.update-quantity');
-        const productId = quantityInput.getAttribute('data-product-id');
-        const quantity = quantityInput.value;
+    addToCartButton.addEventListener('click', async function(e) {
+        e.preventDefault();
+        console.log("heloooo")
+
+        const productId = document.getElementById("")
+        const size = document.getElementById('size-input').value;
+        const quantity = document.getElementById('quantity-input').value;
+        console.log(productId)
+
+        if (!size) {
+            Swal.fire({
+                title: 'Size Required',
+                text: 'Please select a size before adding to cart',
+                icon: 'warning',
+                confirmButtonText: 'Ok',
+                confirmButtonColor: '#ec4899', // pink-500
+                heightAuto: false
+            });
+            return;
+        }
 
         try {
-            const response = await fetch(`/addToCart/${productId}`, {
+            // Show loading state
+            addToCartButton.disabled = true;
+            addToCartButton.innerHTML = `
+                <svg class="animate-spin h-5 w-5 mx-auto" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
+                    <circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle>
+                    <path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
+                </svg>`;
+
+            const response = await fetch('/addToCart', {
                 method: 'POST',
                 headers: {
-                    'Content-Type': 'application/json',
+                    'Content-Type': 'application/json'
                 },
-                body: JSON.stringify({ quantity }),
+                body: JSON.stringify({
+                    productId: productId,
+                    size: size,
+                    quantity: parseInt(quantity)
+                })
             });
+
+            const data = await response.json();
 
             if (response.ok) {
-                const result = await response.json();
+                // Show success message with animation
+                const Toast = Swal.mixin({
+                    toast: true,
+                    position: 'top-end',
+                    showConfirmButton: false,
+                    timer: 3000,
+                    timerProgressBar: true,
+                    didOpen: (toast) => {
+                        toast.addEventListener('mouseenter', Swal.stopTimer)
+                        toast.addEventListener('mouseleave', Swal.resumeTimer)
+                    }
+                });
 
-                // SweetAlert for success
-                Swal.fire({
-                    title: 'Success!',
-                    text: result.message || 'Product added to cart successfully!',
+                Toast.fire({
                     icon: 'success',
-                    confirmButtonText: 'OK',
-                    timer: 2000,
+                    title: 'Product added to cart successfully!'
                 });
 
-                // Optionally update the UI, e.g., cart count or product stock
+                // Update cart count with animation
+                updateCartCount(data.cartItemCount);
+
+                // Optional: Add a brief "added" animation to the button
+                addToCartButton.classList.add('bg-green-500', 'text-white', 'border-green-500');
+                addToCartButton.innerHTML = `
+                    <span class="flex items-center justify-center">
+                        <svg class="w-5 h-5 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"></path>
+                        </svg>
+                        Added to Cart
+                    </span>`;
+
+                // Reset button after delay
+                setTimeout(() => {
+                    addToCartButton.classList.remove('bg-green-500', 'text-white', 'border-green-500');
+                    addToCartButton.innerHTML = 'Add to Cart';
+                    addToCartButton.disabled = false;
+                }, 2000);
+
             } else {
-                const error = await response.json();
-
-                // SweetAlert for error
-                Swal.fire({
-                    title: 'Error!',
-                    text: `Failed to add product to cart: ${error.message}`,
-                    icon: 'error',
-                    confirmButtonText: 'Try Again',
-                });
+                throw new Error(data.message || 'Error adding to cart');
             }
         } catch (error) {
-            console.error('Error adding product to cart:', error);
-
-            // SweetAlert for unexpected error
+            console.error('Add to Cart Error:', error);
+            
+            // Show error message
             Swal.fire({
-                title: 'Oops!',
-                text: 'An unexpected error occurred. Please try again later.',
+                title: 'Error!',
+                text: error.message || 'Failed to add product to cart',
                 icon: 'error',
-                confirmButtonText: 'OK',
+                confirmButtonText: 'Ok',
+                confirmButtonColor: '#ec4899', // pink-500
+                heightAuto: false
             });
+
+            // Reset button
+            addToCartButton.disabled = false;
+            addToCartButton.innerHTML = 'Add to Cart';
         }
     });
+});
+
 
     </script>
 </body>

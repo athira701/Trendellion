@@ -183,11 +183,25 @@
                                 <span class="text-sm text-gray-500 ml-2">(88 reviews)</span>
                             </div>
                         </a>
+                        <div class="mb-8 ">
+                            <label for="size-select" class="block text-gray-700 font-medium mb-2">Select Size</label>
+                            <select id="size-select" name="size" class="w-1/4 border border-gray-300 rounded-lg p-3 focus:ring-2 focus:ring-pink-300 focus:border-transparent bg-white">
+                                <% if (product && product.stock && product.stock.length > 0) { %>
+                                    <% product.stock.forEach(function(stock) { %>
+                                      <option value="<%= stock.size %>"><%= stock.size %></option>
+                                    <% }); %>
+                                  <% } else { %>
+                                    <option value="">N/A</option>
+                                  <% } %>
+                                  
+                                  
+                            </select>
+                        </div>
 
                         <!-- Add to Cart Button -->
                         <div class="p-4">
                             <input type="hidden" name="quantity" id="quantity-input" value="1">
-                            <button class="w-full bg-pink-500 text-white py-2 rounded hover:bg-gray-800 transition-colors" data-product-id="<%= product._id %>">
+                            <button class="add-to-cart-button w-full bg-pink-500 text-white py-2 rounded hover:bg-gray-800 transition-colors"  data-product-id="<%= product._id %>">
                                 Add to Cart
                             </button>
                         </div>
@@ -251,6 +265,86 @@
             currentPage: 1,
             totalPages: 10
         };
+        document.addEventListener("DOMContentLoaded", () => {
+            // Select all "Add to Cart" buttons
+            const addToCartButtons = document.querySelectorAll(".add-to-cart-button");
+
+            addToCartButtons.forEach(button => {
+                button.addEventListener("click", async event => {
+                    event.preventDefault();
+                    const productId = button.getAttribute("data-product-id");
+                    const sizeSelect = button.closest(".product-card").querySelector("#size-select");
+                    const selectedSize = sizeSelect ? sizeSelect.value : null;
+
+                    if (!selectedSize || selectedSize === "N/A") {
+                        await Swal.fire({
+                            title: "Size Required",
+                            text: "Please select a valid size before adding to cart.",
+                            icon: "warning",
+                            confirmButtonText: "OK"
+                        });
+                        return;
+                    }
+                    try {
+                button.disabled = true; // Disable button while processing
+                button.textContent = "Adding...";
+
+                const response = await fetch(`/addToCart/${productId}`, {
+                    method: "POST",
+                    headers: {
+                        "Content-Type": "application/json"
+                    },
+                    body: JSON.stringify({
+                        quantity: 1,
+                        size: sizeSelect.value
+                    })
+                });
+
+                const data = await response.json();
+
+                if (response.ok) {
+                    // Success message with correct SweetAlert syntax
+                    await Swal.fire({
+                        title: "Success!",
+                        text: "Product added to cart successfully",
+                        icon: "success",
+                        confirmButtonText: "OK"
+                    });
+
+                    // Update button appearance
+                    button.classList.remove("bg-pink-500");
+                    button.classList.add("bg-gray-500");
+                    button.textContent = "Added to Cart";
+                    button.disabled = true;
+
+                    // Update cart count if you have a cart counter element
+                    const cartCount = document.querySelector(".cart-count");
+                    if (cartCount && data.cartItemCount) {
+                        cartCount.textContent = data.cartItemCount;
+                    }
+                } else {
+                    throw new Error(data.message || "Failed to add to cart");
+                }
+            } catch (error) {
+                // Reset button state
+                button.disabled = false;
+                button.textContent = "Add to Cart";
+                button.classList.remove("bg-gray-500");
+                button.classList.add("bg-pink-500");
+
+                // Error message with correct SweetAlert syntax
+                await Swal.fire({
+                    title: "Error!",
+                    text: error.message || "Failed to add item to cart. Please try again.",
+                    icon: "error",
+                    confirmButtonText: "OK"
+                });
+            }
+        });
+    });
+});
+            
+
     </script>
 </body>
 </html>

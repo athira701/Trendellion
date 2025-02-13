@@ -56,6 +56,14 @@ const isAuthenticated = (req, res, next) => {
     next();
 };
 
+const isUserAuthenticated = (req, res, next) => {
+    if (req.session && req.session.user && req.session.user.id)  {
+        console.log("midle ethi")
+        next();
+    } else {
+        res.redirect('/login');
+    }
+};
 const checkUserBlocked = async (req, res, next) => {
     try {
         console.log("entering the user blocked middleare");
@@ -101,6 +109,7 @@ module.exports ={
     adminAuth,
     isAdminAuthenticated,
     isAuthenticated,
+    isUserAuthenticated,
     checkUserBlocked,
-    addressMiddleware    
+    addressMiddleware ,   
 }

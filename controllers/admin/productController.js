@@ -95,7 +95,8 @@ const addProduct = async (req, res) => {
         const files = req.files;
 
         console.log('Full Request Body:', req.body);
-        console.log('Files:', req.files);
+        // console.log("Size specifically:",req.body.size)
+        // console.log('Files:', req.files);
         
         // Comprehensive validation with null checks
         const validationErrors = [];
@@ -116,9 +117,24 @@ const addProduct = async (req, res) => {
         const existingProduct = await Product.findOne({
             productName: { $regex: new RegExp('^' + productName + '$', 'i') }
         });
+
         if (existingProduct) {
             validationErrors.push('A product with this name already exists.');
         }
+        // let sizes = details.size || []
+        //const sizes = Array.isArray(details.size) ? details.size : [details.size];
+        // if (details.size) {
+        //     // Ensure sizes is always an array
+        //     sizes = Array.isArray(details.size) 
+        //         ? details.size 
+        //         : [details.size];
+            
+        //     // Clean and filter sizes
+        //     sizes = sizes.map(size => size.trim()).filter(size => size);
+        // }
+
+        // console.log('Raw Size Input:', details.size);
+        // console.log('Processed Sizes:', sizes);
 
         // Validate price
         const price = parseFloat(details.price);
@@ -172,6 +188,9 @@ const addProduct = async (req, res) => {
         const images = files.map(file => file.filename);
         console.log("heloooo2")
 
+        const totalStock= parseInt(details.size_s)+parseInt(details.size_m)+parseInt(details.size_l)+parseInt(details.size_xl)
+
+
         // Create product object
         const product = new Product({
             productName: productName,
@@ -180,9 +199,27 @@ const addProduct = async (req, res) => {
             category: categoryId,
             regularPrice: price,
             salePrice: sPrice,
-            quantity,
-            color: color,
-            size:details.size || [],
+           
+            stock: [
+                {
+                    size: 'S',
+                    quantity: details.size_s
+                },
+                {
+                    size: 'M',
+                    quantity: details.size_m
+                },
+                {
+                    size: 'L',
+                    quantity: details.size_l
+                },
+                {
+                    size: 'XL',
+                    quantity: details.size_xl
+                }
+            ],
+            totalStock,
+           
             productImage: images,
             status: safeTrim(details.visibility) || "Available"
         });
@@ -190,6 +227,8 @@ const addProduct = async (req, res) => {
         // Save product to database
         const savedProduct = await product.save();
         console.log("product",savedProduct)
+        console.log('Saved Product Sizes:', savedProduct.size);
+
 
         res.status(200).json({ 
             success: true, 

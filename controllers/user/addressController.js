@@ -316,11 +316,62 @@ const deleteAddress = async (req,res) =>{
     }
 }
 
+const setDefaultAddress = async (req, res) => {
+    try {
+        const addressId = req.params.addressId;
+        const userId = req.session.user._id; // Assuming you have user info in req.user from auth middleware
+
+        // First, find the user's address document
+        const userAddresses = await Address.findOne({ userId: userId });
+        
+        if (!userAddresses) {
+            return res.status(404).json({ 
+                success: false, 
+                error: 'No addresses found for this user' 
+            });
+        }
+
+        // Reset all addresses to isDefault: false
+        userAddresses.address = userAddresses.address.map(addr => {
+            addr.isDefault = false;
+            return addr;
+        });
+
+        // Find and set the selected address as default
+        const addressToUpdate = userAddresses.address.id(addressId);
+        if (!addressToUpdate) {
+            return res.status(404).json({ 
+                success: false, 
+                error: 'Address not found' 
+            });
+        }
+
+        addressToUpdate.isDefault = true;
+
+        // Save the updated addresses
+        await userAddresses.save();
+
+        res.status(200).json({
+            success: true,
+            message: 'Default address updated successfully',
+            address: addressToUpdate
+        });
+
+    } catch (error) {
+        console.error('Error in setDefaultAddress:', error);
+        res.status(500).json({
+            success: false,
+            error: 'Internal server error'
+        });
+    }
+};
+
 
 module.exports = {
 addAddress,
 getAddresses,
 getEditAddress,
 editAddress,
-deleteAddress
+deleteAddress,
+setDefaultAddress
 }

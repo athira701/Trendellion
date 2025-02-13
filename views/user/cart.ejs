@@ -1,118 +1,268 @@
-<!DOCTYPE html>
-<html lang="en">
-<head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Trendellion - Admin Login</title>
-    <style>
-        * {
-            margin: 0;
-            padding: 0;
-            box-sizing: border-box;
-            font-family: Arial, sans-serif;
-        }
+<%-include('../../views/partials/user/header')%>
+<div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
+  <h1 class="text-2xl font-bold mb-8">YOUR CART</h1>
 
-        body {
-            min-height: 100vh;
-            display: flex;
-            flex-direction: column;
-            align-items: center;
-            background-color: white;
-        }
+  <% if (cart && cart.length > 0) { %>
+  <div class="grid grid-cols-1 lg:grid-cols-3 gap-8">
+    <!-- Cart Items Section -->
+    <div class="lg:col-span-2">
+      <% cart.forEach(item => { %>
+      <div class="bg-white rounded-lg shadow-sm mb-4">
+        <div
+          class="p-6 flex flex-col md:flex-row items-center md:items-start gap-6"
+        >
+          <img
+            src="/uploads/<%= item.productImage %>"
+            alt="<%= item.name %>"
+            class="w-24 h-24 object-cover rounded-md"
+          />
 
-        .header {
-            width: 100%;
-            text-align: center;
-            padding: 20px;
-            border-bottom: 1px solid #e5e5e5;
-        }
-
-        .header h1 {
-            font-size: 24px;
-            color: #333;
-            font-weight: normal;
-        }
-
-        .login-container {
-            width: 90%;
-            max-width: 400px;
-            margin: 40px auto;
-            padding: 20px;
-            background-color: #f5d0d9;
-            border-radius: 8px;
-        }
-
-        .login-form {
-            display: flex;
-            flex-direction: column;
-            gap: 15px;
-        }
-
-        .login-header {
-            text-align: center;
-            margin-bottom: 20px;
-            color: #333;
-        }
-
-        .form-group {
-            display: flex;
-            flex-direction: column;
-        }
-
-        input[type="text"],
-        input[type="password"] {
-            padding: 10px;
-            border: none;
-            border-radius: 4px;
-            background-color: rgba(0, 0, 0, 0.1);
-        }
-
-        input[type="submit"] {
-            padding: 8px 20px;
-            background-color: #d4899b;
-            border: none;
-            border-radius: 4px;
-            color: white;
-            cursor: pointer;
-            align-self: flex-end;
-        }
-
-        input[type="submit"]:hover {
-            background-color: #ab5389;
-        }
-        
-
-        @media (max-width: 480px) {
-            .login-container {
-                width: 95%;
-                margin: 20px auto;
-            }
-
-            .header h1 {
-                font-size: 20px;
-            }
-        }
-    </style>
-</head>
-<body>
-    <header class="header">
-        <h1>Trendellion</h1>
-    </header>
-    
-    <div class="login-container">
-        <form class="login-form" action="/admin/login" method="POST">
-            <h2 class="login-header">Admin Login</h2>
-            
-            <div class="form-group">
-                <input type="text" name="username" placeholder="User name" required>
+          <div class="flex-grow text-center md:text-left">
+            <h3 class="font-medium max"><%= item.name %></h3>
+            <p class="text-gray-500 text-sm">Size: <%= item.size %></p>
+            <p class="font-bold mt-2">$<%= item.total %></p>
+          </div>
+                     <!-- delete button section -->
+          <div class="flex flex-col items-center gap-4">
+            <button
+              class="text-red-500 hover:text-red-700 p-2 delete-item"
+              data-id="<%= item.productId %>"
+              data-size="<%= item.size %>"
+              onclick="removeFromCart('<%= item.productId %>')"
+            >
+              <svg
+                xmlns="http://www.w3.org/2000/svg"
+                class="w-5 h-5"
+                viewBox="0 0 20 20"
+                fill="currentColor"
+              >
+                <path
+                  fill-rule="evenodd"
+                  d="M9 2a1 1 0 00-.894.553L7.382 4H4a1 1 0 000 2v10a2 2 0 002 2h8a2 2 0 002-2V6a1 1 0 100-2h-3.382l-.724-1.447A1 1 0 0011 2H9zM7 8a1 1 0 012 0v6a1 1 0 11-2 0V8zm5-1a1 1 0 00-1 1v6a1 1 0 102 0V8a1 1 0 00-1-1z"
+                  clip-rule="evenodd"
+                />
+              </svg>
+            </button>
+                <!-- Quantity -->
+            <div class="flex items-center gap-3">
+              <button
+                class="w-8 h-8 rounded bg-gray-100 hover:bg-gray-200 decrement"
+                data-id="<%= item.productId %>"
+              >
+                -
+              </button>
+              <input
+                type="number"
+                value="<%= item.quantity %>"
+                min="1"
+                max="10"
+                class="w-12 text-center border rounded px-2 py-1"
+              />
+              <button
+                class="w-8 h-8 rounded bg-gray-100 hover:bg-gray-200 increment"
+                data-id="<%= item.productId %>"
+              >
+                +
+              </button>
             </div>
-            
-            <div class="form-group">
-                <input type="password" name="password" placeholder="Password" required>
-            </div>
-            
-            <input type="submit" value="Login">
-        </form>
+          </div>
+        </div>
+      </div>
+      <% }); %>
+      <a
+        href="/shop"
+        class="text-gray-600 hover:text-gray-800 inline-block mt-6"
+      >
+        Continue Shopping
+      </a>
     </div>
-</body>
-</html>
+
+    <!-- Cart Summary Section -->
+    <div class="lg:col-span-1">
+      <div class="bg-white rounded-lg shadow-sm p-6">
+        <h2 class="font-bold text-lg mb-4">CART TOTAL</h2>
+        <div class="space-y-3 mb-6">
+          <div class="flex justify-between">
+            <span class="text-gray-600">Subtotal</span>
+            <span id="cartSubtotal">$<%= cartTotal %></span>
+          </div>
+          <div class="flex justify-between font-medium">
+            <span>Total</span>
+            <span id="cartTotal">$<%= cartTotal %></span>
+          </div>
+        </div>
+        <button
+          class="w-full bg-pink-500 hover:bg-pink-600 text-white rounded-full py-3 px-4 transition-colors"
+          onclick="window.location.href='/checkout'"
+        >
+          Go to Checkout →
+        </button>
+      </div>
+    </div>
+  </div>
+  <% } else { %>
+  <p class="text-center text-gray-500">
+    Your cart is empty. <a href="/shop" class="text-blue-500">Shop Now</a>
+  </p>
+  <% } %>
+</div>
+<%-include('../../views/partials/user/footer')%>
+
+<script>
+ document.querySelectorAll(".delete-item").forEach((button) => {
+    button.addEventListener("click", async () => {
+        const productId = button.getAttribute("data-id");
+        const size = button.getAttribute("data-size");
+
+        const result = await Swal.fire({
+            title: 'Are you sure?',
+            text: "You won't be able to revert this!",
+            icon: 'warning',
+            showCancelButton: true,
+            confirmButtonColor: '#3085d6',
+            cancelButtonColor: '#d33',
+            confirmButtonText: 'Yes, remove it!'
+        });
+
+        if (result.isConfirmed) {
+            try {
+                const response = await fetch(`/delete/${productId}?size=${size}`, { 
+                    method: "DELETE",
+                    headers: {
+                        'Content-Type': 'application/json'
+                    }
+                });
+                
+                if (response.ok) {
+                    Swal.fire(
+                        'Removed!',
+                        'The item has been removed from your cart.',
+                        'success'
+                    ).then(() => {
+                        location.reload();
+                    });
+                } else {
+                    const errorData = await response.json();
+                    console.error("Error:", errorData.message);
+                }
+            } catch (error) {
+                console.error("Error removing item:", error);
+            }
+        }
+    });
+});
+
+// Update button states based on input value
+const MAX_QUANTITY = 10;
+
+const updateButtons = (input) => {
+    const decrementButton = input.parentElement.querySelector(".decrement");
+    const incrementButton = input.parentElement.querySelector(".increment");
+    const currentValue = parseInt(input.value);
+    
+    decrementButton.disabled = currentValue <= 1;
+    incrementButton.disabled = currentValue >= MAX_QUANTITY;
+    
+    // Update button styles
+    if (decrementButton.disabled) {
+        decrementButton.classList.add('opacity-50', 'cursor-not-allowed');
+    } else {
+        decrementButton.classList.remove('opacity-50', 'cursor-not-allowed');
+    }
+    
+    if (incrementButton.disabled) {
+        incrementButton.classList.add('opacity-50', 'cursor-not-allowed');
+    } else {
+        incrementButton.classList.remove('opacity-50', 'cursor-not-allowed');
+    }
+};
+
+// Initialize button states
+document.querySelectorAll('input[type="number"]').forEach(input => {
+    updateButtons(input);
+});
+
+// Add event listeners for increment/decrement buttons
+document.querySelectorAll(".increment, .decrement").forEach((button) => {
+    button.addEventListener("click", async () => {
+        // Disable the button immediately to prevent double-clicks
+        button.disabled = true;
+        
+        const productId = button.getAttribute("data-id");
+        const action = button.classList.contains("increment") ? "increment" : "decrement";
+        const quantityInput = button.parentElement.querySelector('input[type="number"]');
+        const currentQuantity = parseInt(quantityInput.value);
+
+        // Prevent increment if at MAX_QUANTITY
+        if (action === "increment" && currentQuantity >= MAX_QUANTITY) {
+            button.disabled = false;
+            Swal.fire({
+                icon: 'error',
+                title: 'Limit Reached',
+                text:` Maximum quantity allowed is ${MAX_QUANTITY} items`
+            });
+            return;
+        }
+
+        try {
+            const response = await fetch("/update", {
+                method: "POST",
+                headers: {
+                    "Content-Type": "application/json",
+                },
+                body: JSON.stringify({
+                    productId,
+                    action,
+                }),
+            });
+
+            const data = await response.json();
+
+            if (response.ok) {
+                // Update quantity input
+                quantityInput.value = data.newQuantity;
+                
+                // Update item total
+                const itemContainer = button.closest(".bg-white");
+                const itemTotalElement = itemContainer.querySelector(".font-bold");
+                itemTotalElement.textContent = `$${data.newTotal.toFixed(2)}`;
+
+                // Update cart totals
+                const cartSubtotalElement = document.getElementById('cartSubtotal');
+                const cartTotalElement = document.getElementById('cartTotal');
+                
+                if (cartSubtotalElement) cartSubtotalElement.textContent = `$${data.cartTotal.toFixed(2)}`;
+                if (cartTotalElement) cartTotalElement.textContent = `$${data.cartTotal.toFixed(2)}`;
+
+                // Re-enable buttons and update their states
+                updateButtons(quantityInput);
+            } else {
+                throw new Error(data.message);
+            }
+        } catch (error) {
+            Swal.fire({
+                icon: 'error',
+                title: 'Error',
+                text: error.message || 'Failed to update cart'
+            });
+        } finally {
+            // Re-enable the button after the operation is complete
+            button.disabled = false;
+        }
+    });
+});
+
+// Add event listeners for direct input changes
+document.querySelectorAll('input[type="number"]').forEach(input => {
+    input.addEventListener('change', () => {
+        let value = parseInt(input.value);
+        
+        // Enforce min/max constraints
+        if (isNaN(value) || value < 1) value = 1;
+        if (value > MAX_QUANTITY) value = MAX_QUANTITY;
+        
+        input.value = value;
+        updateButtons(input);
+    });
+});
+</script>

@@ -1,0 +1,338 @@
+<%-include('../../views/partials/user/header')%>
+<!-- views/order-details.ejs -->
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Order Details</title>
+    <style>
+      * {
+        margin: 0;
+        padding: 0;
+        box-sizing: border-box;
+        font-family: "Arial", sans-serif;
+      }
+
+      body {
+        background-color: #f8f9fa;
+        padding: 20px;
+      }
+
+      .container {
+        max-width: 1000px;
+        margin: 0 auto;
+        background: white;
+        padding: 30px;
+        border-radius: 8px;
+        box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+      }
+      .delivery-address{
+        background-color: rgb(248, 209, 235);
+      }
+
+      .success-message {
+        color: #DE3E7E;
+        font-size: 18px;
+        margin-bottom: 30px;
+        text-align: right;
+      }
+
+      .order-header {
+        display: flex;
+        justify-content: space-between;
+        margin-bottom: 30px;
+      }
+
+      .delivery-address {
+        background: white;
+        padding: 20px;
+        border-radius: 8px;
+        border: 1px solid #eee;
+        max-width: 300px;
+      }
+
+      .delivery-address h3 {
+        margin-bottom: 15px;
+        font-size: 18px;
+      }
+
+      .address-details p {
+        margin-bottom: 8px;
+        color: #555;
+        line-height: 1.4;
+      }
+
+      .order-actions {
+        margin-top: 20px;
+      }
+
+      .order-id {
+        margin-bottom: 20px;
+      }
+
+      .download-btn {
+        padding: 8px 20px;
+        border: 1px solid #DE3E7E;
+        color:#DE3E7E;
+        background: white;
+        border-radius: 4px;
+        cursor: pointer;
+        text-decoration: none;
+        display: inline-block;
+      }
+
+      .product-details {
+        display: flex;
+        align-items: center;
+        margin: 30px 0;
+        padding: 20px;
+        border: 1px solid #eee;
+        border-radius: 8px;
+      }
+
+      .product-image {
+        width: 150px;
+        height: 200px;
+        object-fit: cover;
+        margin-right: 20px;
+      }
+
+      .product-info {
+        flex-grow: 1;
+      }
+
+      .product-title {
+        font-size: 18px;
+        margin-bottom: 10px;
+      }
+
+      .product-meta {
+        color: #666;
+        margin-bottom: 5px;
+      }
+
+      .product-price {
+        color: #DE3E7E;
+        font-size: 18px;
+        font-weight: bold;
+        margin-top: 10px;
+      }
+
+      .action-buttons {
+        text-align: right;
+      }
+
+      .help-btn {
+        padding: 8px 20px;
+        border: 1px solid #4caf50;
+        color: #4caf50;
+        background: white;
+        border-radius: 4px;
+        margin-right: 10px;
+        cursor: pointer;
+      }
+
+      .cancel-btn {
+        padding: 8px 20px;
+        border: 1px solid #DE3E7E;
+        color: #DE3E7E;
+        background: white;
+        border-radius: 4px;
+        cursor: pointer;
+      }
+
+      .order-timeline {
+        margin-top: 40px;
+        position: relative;
+        padding-top: 30px;
+      }
+
+      .timeline-track {
+        height: 4px;
+        background: #e0e0e0;
+        position: relative;
+        margin: 0 50px;
+      }
+
+      .timeline-progress {
+        position: absolute;
+        height: 100%;
+        background: #ff4081;
+        width: 50%;
+        top: 0;
+        left: 0;
+        transition: width 0.3s ease;
+      }
+
+      .timeline-points {
+        display: flex;
+        justify-content: space-between;
+        position: relative;
+        margin: 0 50px;
+      }
+
+      .timeline-point {
+        position: absolute;
+        width: 20px;
+        height: 20px;
+        background: white;
+        border: 2px solid #e0e0e0;
+        border-radius: 50%;
+        top: -38px;
+        transform: translateX(-50%);
+      }
+
+      .timeline-point.active {
+        border-color: #ff4081;
+        background: #ff4081;
+      }
+
+      .timeline-labels {
+        display: flex;
+        justify-content: space-between;
+        margin-top: 20px;
+      }
+
+      .timeline-label {
+        text-align: center;
+        flex: 1;
+      }
+
+      .timeline-label .status {
+        font-weight: bold;
+        margin-bottom: 5px;
+      }
+
+      .timeline-label .date {
+        color: #666;
+        font-size: 14px;
+      }
+    </style>
+  </head>
+  <body>
+    <div class="container">
+      <div class="success-message">SUCCESSFULLY PLACED THE ORDER</div>
+
+      <div class="order-header ">
+        <div class="delivery-address">
+          <h3>Delivery Address</h3>
+          <div class="address-details">
+            <p><%= order.name %></p>
+            <p><%= order.address %></p>
+            <p>Phone number <%= order.phone %></p>
+          </div>
+        </div>
+
+        <div class="order-actions">
+          <div class="order-id">
+            <strong>Order Id:</strong> <%= order.orderId %>
+          </div>
+          <div>
+            <strong>More Actions:</strong>
+            <div style="margin-top: 10px">
+              <a href="#" class="download-btn">Download Invoice</a>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- Replace the single product-details div with this -->
+      <% order.orderedItems.forEach(item => { %>
+      <div class="product-details">
+        <img
+          src="/uploads/<%= item.productImage[0] %>"
+          alt="Product Image"
+          class="product-image"
+        />
+        <div class="product-info">
+          <h3 class="product-title"><%= item.productName %></h3>
+          <p class="product-meta">Size: <%= item.size %></p>
+          <p class="product-meta">Quantity: <%= item.quantity %></p>
+          <p class="product-price">₹<%= item.price.toFixed(2) %></p>
+        </div>
+        <div class="action-buttons">
+          <button class="help-btn">Need help?</button>
+          <% if (order.orderStatus !== 'DELIVERED' && order.orderStatus !==
+          'CANCELLED') { %>
+          <button class="cancel-btn">Cancel Order</button>
+          <% } %>
+        </div>
+      </div>
+      <% }); %>
+      <!-- Total Section -->
+      <div class="total-section">
+        <h3 style="margin-bottom: 15px;">Order Summary</h3>
+        <p style="font-size: 18px; margin-bottom: 10px;">
+            <strong>Total Amount:</strong> 
+            <span style="color: #DE3E7E;">₹<%= order.totalAmount.toFixed(2) %></span>
+        </p>
+        <div class="payment-info">
+            <p>Payment Method: <%= order.paymentMethod %></p>
+            <p>Payment Status: <strong><%= order.paymentStatus %></strong></p>
+        </div>
+    </div>
+
+      <div class="order-timeline">
+        <div class="timeline-track">
+          <div class="timeline-progress"></div>
+        </div>
+        <div class="timeline-points">
+          <% const stages = ['Order Confirmed', 'Shipped', 'Out For Delivery',
+          'Delivered']; %> <% stages.forEach((stage, index) => { %>
+          <div
+            class="timeline-point <%= index <= order.currentStage ? 'active' : '' %>"
+            style="left: '<%= (index / (stages.length - 1)) * 100 %>%'"
+          ></div>
+          <% }); %>
+        </div>
+        <div class="timeline-labels">
+          <% stages.forEach((stage, index) => { %>
+          <div class="timeline-label">
+            <div class="status"><%= stage %></div>
+            <div class="date"><%= order.dates[index] %></div>
+          </div>
+          <% }); %>
+        </div>
+      </div>
+    </div>
+
+    <script>
+      document.addEventListener("DOMContentLoaded", function () {
+        // Update timeline progress based on current stage
+        const currentStage = `<%= order.currentStage %>`;
+        const totalStages = 3;
+        const progress = (currentStage / totalStages) * 100;
+        document.querySelector(
+          ".timeline-progress"
+        ).style.width = `${progress}%`;
+
+        // Handle button clicks
+        document
+          .querySelector(".cancel-btn")
+          .addEventListener("click", function () {
+            if (confirm("Are you sure you want to cancel this order?")) {
+              // Add cancel order logic here
+              console.log("Order cancelled");
+            }
+          });
+
+        document
+          .querySelector(".help-btn")
+          .addEventListener("click", function () {
+            // Add help logic here
+            console.log("Help requested");
+          });
+
+        document
+          .querySelector(".download-btn")
+          .addEventListener("click", function (e) {
+            e.preventDefault();
+            // Add download invoice logic here
+            console.log("Downloading invoice");
+          });
+      });
+    </script>
+  </body>
+</html>
+<%-include('../../views/partials/user/footer')%>

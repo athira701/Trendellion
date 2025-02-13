@@ -23,18 +23,26 @@ const productSchema = new Schema({
             type: Number,
             required: true 
         },
-        quantity: { 
-            type: Number,
-            required: true 
+    
+        stock: [
+            {
+                quantity: {
+                    type: Number,
+                    required:true
+                },
+                size: {
+                    type: String,
+                    required: true
+                }
+            }
+        ],
+        totalStock:{
+            type:Number,
+            required:true
         },
-        size: {
-            type: [String],
-            required: false
-        },
-        color: { 
-            type: String,
-            required: true 
-        },
+       
+     
+      
         productImage: {
              type: [String],
              required: true 

@@ -49,7 +49,7 @@ app.use("/admin",adminRouter)
 
 app.use((err, req, res, next) => {
     console.error(err.stack);
-    res.status(500).send('Something broke!');
+    res.status(500).send('Athira,Dont worry! You can do it');
 });
 
 const PORT = process.env.PORT || 3000;

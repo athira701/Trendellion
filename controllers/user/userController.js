@@ -413,14 +413,7 @@ const shopPageInfo = async (req, res) => {
 
 // Remove the loadShopPage function as it's no longer needed
 
-const loadCart = async (req,res) => {
-    try {
-        console.log("heyy i'm cart");
-        res.render('user/cart')
-    } catch (error) {
-        
-    }
-}
+
 
 const loadProfile = async (req,res) => {
     try {
@@ -483,5 +476,5 @@ module.exports = {
     shopPageInfo,
     loadProfile,
     updateProfile,
-    loadCart,
+   
 }
