@@ -89,10 +89,10 @@
                   <label for="sPrice" class="form-label">sPrice</label>
                   <input type="number" class="form-control" id="sPrice" name="sPrice" required min="0" step="0.01">
                 </div>
-                <!-- <div class="col-md-4 mb-3">
+                <div class="col-md-4 mb-3">
                   <label for="color" class="form-label">Color</label>
                   <input type="text" class="form-control" id="color" name="color" required>
-                </div> -->
+                </div>
   
                 <!-- Instead of a single quantity field, we have individual sizes below -->
                 <div class="col-md-4 mb-3">
@@ -286,7 +286,8 @@
         const categoryId = document.getElementById('categoryId').value;
         console.log("Category ID:", categoryId);
   
-        
+        const color = document.getElementById('color').value;
+        console.log("Color:", color);
   
         console.log("Validation started...");
   
@@ -358,14 +359,24 @@
         }
         console.log("Passed Description validation");
   
-       
+        const colorPattern = /^[A-Za-z][A-Za-z\s]{1,}$/;
+        if (!colorPattern.test(color)) {
+          console.log("Invalid Color!");
+          Swal.fire({
+            icon: 'error',
+            title: 'Invalid Color',
+            text: 'Color must contain only alphabets and start with a letter.'
+          });
+          return;
+        }
+        console.log("Passed Color validation");
   
         console.log("Creating FormData...");
         const formData = new FormData();
         formData.append('productName', productName);
         formData.append('price', price);
         formData.append('sPrice', sPrice);
-        
+        formData.append('color', color);
         formData.append('formdescription', description);
         formData.append('categoryId', categoryId);
         formData.append('formvisibility', document.getElementById('formvisibility').value);
@@ -387,7 +398,7 @@
           formData.append('cropImages', croppedImages[key], originalFileName);
         });
   
-        if (Object.keys(croppedImages).length < 1) {
+        if (Object.keys(croppedImages).length < 4) {
           console.log("Insufficient Images!");
           Swal.fire({
             icon: 'error',

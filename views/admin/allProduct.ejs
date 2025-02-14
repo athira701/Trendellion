@@ -30,7 +30,7 @@
                                     <th>Quantity</th>
                                     <th>Category</th>
                                     <th>Price</th>
-                                    
+                                    <th>Color</th>
                                     <th>Status</th>
                                     <th>Edit</th>
                                     <th>Delete/Restore</th>
@@ -44,10 +44,10 @@
                                         src="/uploads/<%= product.productImage[0] %>" alt="Image"></td>
                                
                                     <td><%= product.productName %></td>
-                                    <td><%= product.totalStock%></td>
+                                    <td><%= product.quantity %></td>
                                     <td><%= product.category && product.category.name ? product.category.name : "no cat" %></td>
                                     <td><%= product.salePrice %></td>
-                                    
+                                    <td><%= product.color %></td>
                                     <td class="text-center">
                                         <% if (product.isBlocked === true) { %>
                                            Blocked
