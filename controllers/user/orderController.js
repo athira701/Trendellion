@@ -246,11 +246,51 @@ const getOrderDates = (order) => {
     return ['2023-10-01', '2023-10-02', '2023-10-03', '2023-10-04'];
 };
 
+const cancelOrderItem = async (req, res) => {
+    try {
+        const orderId = req.params.orderId;
+
+        // Find the order
+        const order = await Order.findOne({ orderId: orderId });
+        if (!order) {
+            return res.status(404).json({ message: 'Order not found' });
+        }
+
+        // Check if the order can be cancelled
+        if (order.orderStatus === 'DELIVERED' || order.orderStatus === 'CANCELLED') {
+            return res.status(400).json({ message: 'Order cannot be cancelled' });
+        }
+
+        // Update the order status to CANCELLED
+        order.orderStatus = 'CANCELLED';
+        await order.save();
+
+        // Update the stock quantity for each product in the order
+        for (const item of order.orderedItems) {
+            const product = await Product.findById(item.product);
+            if (product) {
+                // Find the stock entry for the specific size
+                const stockEntry = product.stock.find(stock => stock.size === item.size);
+                if (stockEntry) {
+                    stockEntry.quantity += item.quantity; // Add back the cancelled quantity
+                    product.totalStock += item.quantity; // Update total stock
+                    await product.save();
+                }
+            }
+        }
+
+        res.status(200).json({ message: 'Order cancelled successfully' });
+    } catch (error) {
+        console.error('Error cancelling order:', error);
+        res.status(500).json({ message: 'Internal Server Error' });
+    }
+};
 
 
 module.exports = {
     placeOrder,
     orderPlacedpage,
     getOrderPage,
-    getOrderDetails
+    getOrderDetails,
+    cancelOrderItem
 }

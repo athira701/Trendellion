@@ -16,7 +16,7 @@ const getProductPage = async (req, res) => {
 
         const totalProducts = await Product.countDocuments();
         const products = await Product.find({})
-            .select('productName productImage quantity category salePrice color isBlocked')
+            .select('productName productImage totalStock category salePrice  isBlocked')
             .populate('category') // Populate only the 'name' field of category
             .sort({ createdAt: -1 })
             .skip(skip)
@@ -175,9 +175,10 @@ const addProduct = async (req, res) => {
         }
 
         // Check image uploads
-        if (!files || files.length < 4) {
-            validationErrors.push('Please upload at least 4 images.');
+        if (!files || files.length < 1) {
+            validationErrors.push('Please upload at least one image.');
         }
+
 
         console.log("reached ")
 

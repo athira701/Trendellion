@@ -87,7 +87,7 @@ const orderSchema = new Schema({
   },
   orderStatus: {
     type: String,
-    enum: ["PENDING", "PROCESSING", "SHIPPED", "DELIVERED", "CANCELLED","RETURN REQUESTED","RETURN CONFIRMED","RETURN REJECTED","RETURNED"],
+    enum: ["PENDING", "PROCESSING", "Shipped", "DELIVERED", "CANCELLED","RETURN REQUESTED","RETURN CONFIRMED","RETURN REJECTED","RETURNED"],
     default: "PENDING"
   },
   trackingInfo: {

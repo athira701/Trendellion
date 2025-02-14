@@ -80,7 +80,7 @@ router.post('/orderPlaced', orderController.placeOrder);
 router.get('/placedOrder',orderController.orderPlacedpage)
 router.get('/orders',orderController.getOrderPage)
 router.get('/orders/:orderId',orderController.getOrderDetails)
-
-
+//router.post('/orders/:orderId/items/:itemId/cancel',orderController.cancelOrderItem)
+router.post('/cancelOrder/:orderId',orderController.cancelOrderItem)
 
 module.exports = router

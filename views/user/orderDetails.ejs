@@ -31,11 +31,34 @@
         background-color: rgb(248, 209, 235);
       }
 
-      .success-message {
+      .status-message {
         color: #DE3E7E;
         font-size: 18px;
         margin-bottom: 30px;
         text-align: right;
+      }
+
+      .cancelled-order-banner {
+        background-color: #f8d7da;
+        color: #721c24;
+        padding: 12px 20px;
+        margin-bottom: 20px;
+        border-radius: 4px;
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+      }
+
+      .cancelled-order-banner span {
+        font-weight: bold;
+      }
+
+      .cancelled-order-banner .close-btn {
+        background: none;
+        border: none;
+        color: #721c24;
+        cursor: pointer;
+        font-size: 20px;
       }
 
       .order-header {
@@ -142,79 +165,141 @@
         cursor: pointer;
       }
 
+      .cancelled-btn {
+        padding: 8px 20px;
+        border: 1px solid #ccc;
+        color: #999;
+        background: #f8f9fa;
+        border-radius: 4px;
+        cursor: not-allowed;
+      }
+
+      .total-section {
+        margin-top: 30px;
+        padding: 20px;
+        border: 1px solid #eee;
+        border-radius: 8px;
+      }
+
       .order-timeline {
         margin-top: 40px;
+        padding: 20px 0;
+      }
+
+      .timeline-container {
+        padding: 20px 40px;
         position: relative;
-        padding-top: 30px;
       }
 
       .timeline-track {
-        height: 4px;
+        height: 6px;
         background: #e0e0e0;
         position: relative;
-        margin: 0 50px;
+        border-radius: 3px;
       }
 
       .timeline-progress {
         position: absolute;
         height: 100%;
-        background: #ff4081;
-        width: 50%;
+        background: linear-gradient(to right, #DE3E7E, #ff669a);
+        width: 0%;
         top: 0;
         left: 0;
-        transition: width 0.3s ease;
+        border-radius: 3px;
+        transition: width 0.8s ease;
       }
 
       .timeline-points {
+        position: relative;
         display: flex;
         justify-content: space-between;
-        position: relative;
-        margin: 0 50px;
+        margin-top: -13px;
       }
 
       .timeline-point {
-        position: absolute;
-        width: 20px;
-        height: 20px;
+        width: 26px;
+        height: 26px;
         background: white;
-        border: 2px solid #e0e0e0;
+        border: 3px solid #e0e0e0;
         border-radius: 50%;
-        top: -38px;
-        transform: translateX(-50%);
+        z-index: 2;
+        position: relative;
+        transition: all 0.3s ease;
       }
 
       .timeline-point.active {
-        border-color: #ff4081;
-        background: #ff4081;
+        border-color: #DE3E7E;
+        box-shadow: 0 0 0 3px rgba(222, 62, 126, 0.2);
+      }
+
+      .timeline-point.completed {
+        background: #DE3E7E;
+        border-color: #DE3E7E;
+      }
+
+      .timeline-point.cancelled {
+        background: #999;
+        border-color: #999;
       }
 
       .timeline-labels {
         display: flex;
         justify-content: space-between;
-        margin-top: 20px;
+        margin-top: 15px;
       }
 
       .timeline-label {
         text-align: center;
-        flex: 1;
+        width: 25%;
+        padding: 0 10px;
+        position: relative;
       }
 
       .timeline-label .status {
         font-weight: bold;
         margin-bottom: 5px;
+        color: #333;
+        font-size: 14px;
+        transition: color 0.3s ease;
+      }
+
+      .timeline-label.active .status {
+        color: #DE3E7E;
       }
 
       .timeline-label .date {
         color: #666;
-        font-size: 14px;
+        font-size: 12px;
+      }
+
+      @media (max-width: 768px) {
+        .timeline-label .status {
+          font-size: 12px;
+        }
+        
+        .timeline-label .date {
+          font-size: 10px;
+        }
+        
+        .timeline-point {
+          width: 20px;
+          height: 20px;
+        }
       }
     </style>
   </head>
   <body>
     <div class="container">
-      <div class="success-message">SUCCESSFULLY PLACED THE ORDER</div>
+      <% if (order.orderStatus === 'CANCELLED') { %>
+        <div class="cancelled-order-banner" id="cancelled-banner">
+          <span>YOUR ORDER HAS BEEN CANCELLED</span>
+          <button class="close-btn" onclick="closeBanner()">&times;</button>
+        </div>
+      <% } else { %>
+        <div class="status-message">SUCCESSFULLY PLACED THE ORDER</div>
+      <% } %>
 
-      <div class="order-header ">
+      <div class="order-header">
         <div class="delivery-address">
           <h3>Delivery Address</h3>
           <div class="address-details">
@@ -228,16 +313,14 @@
           <div class="order-id">
             <strong>Order Id:</strong> <%= order.orderId %>
           </div>
-          <div>
-            <strong>More Actions:</strong>
-            <div style="margin-top: 10px">
-              <a href="#" class="download-btn">Download Invoice</a>
+          <% if (order.orderStatus === 'CANCELLED') { %>
+            <div style="margin-top: 10px; color: #721c24;">
+              <strong>Order Status:</strong> Cancelled
             </div>
-          </div>
+          <% } %>
         </div>
       </div>
 
-      <!-- Replace the single product-details div with this -->
       <% order.orderedItems.forEach(item => { %>
       <div class="product-details">
         <img
@@ -252,15 +335,15 @@
           <p class="product-price">₹<%= item.price.toFixed(2) %></p>
         </div>
         <div class="action-buttons">
-          <button class="help-btn">Need help?</button>
-          <% if (order.orderStatus !== 'DELIVERED' && order.orderStatus !==
-          'CANCELLED') { %>
-          <button class="cancel-btn">Cancel Order</button>
+          <% if (order.orderStatus !== 'DELIVERED' && order.orderStatus !== 'CANCELLED') { %>
+            <button class="cancel-btn" onclick="cancelOrder('<%= order.orderId %>')">Cancel Order</button>
+          <% } else if (order.orderStatus === 'CANCELLED') { %>
+            <button class="cancelled-btn" disabled>Cancelled</button>
           <% } %>
         </div>
       </div>
       <% }); %>
-      <!-- Total Section -->
+      
       <div class="total-section">
         <h3 style="margin-bottom: 15px;">Order Summary</h3>
         <p style="font-size: 18px; margin-bottom: 10px;">
@@ -271,67 +354,122 @@
             <p>Payment Method: <%= order.paymentMethod %></p>
             <p>Payment Status: <strong><%= order.paymentStatus %></strong></p>
         </div>
-    </div>
+      </div>
 
+      <% if (order.orderStatus !== 'CANCELLED') { %>
       <div class="order-timeline">
-        <div class="timeline-track">
-          <div class="timeline-progress"></div>
+        <h3 style="margin-bottom: 15px;">Order Status</h3>
+        
+        <div class="timeline-container">
+          <div class="timeline-track">
+            <div class="timeline-progress" id="timeline-progress"></div>
+          </div>
+          
+          <div class="timeline-points">
+            <% 
+              const stages = ['Order Confirmed', 'Shipped', 'Out For Delivery', 'Delivered'];
+              let currentStageIndex = order.currentStage;
+            %>
+            
+            <% stages.forEach((stage, index) => { %>
+              <div 
+                class="timeline-point 
+                      <%= index <currentStageIndex ? 'completed' : '' %> 
+                      <%= index === currentStageIndex ? 'active' : '' %>"
+              ></div>
+            <% }); %>
+          </div>
         </div>
-        <div class="timeline-points">
-          <% const stages = ['Order Confirmed', 'Shipped', 'Out For Delivery',
-          'Delivered']; %> <% stages.forEach((stage, index) => { %>
-          <div
-            class="timeline-point <%= index <= order.currentStage ? 'active' : '' %>"
-            style="left: '<%= (index / (stages.length - 1)) * 100 %>%'"
-          ></div>
-          <% }); %>
-        </div>
+        
         <div class="timeline-labels">
           <% stages.forEach((stage, index) => { %>
-          <div class="timeline-label">
-            <div class="status"><%= stage %></div>
-            <div class="date"><%= order.dates[index] %></div>
-          </div>
+            <div class="timeline-label <%= index === currentStageIndex ? 'active' : '' %>">
+              <div class="status"><%= stage %></div>
+              <div class="date"><%= order.dates && order.dates[index] ? order.dates[index] : '--' %></div>
+            </div>
           <% }); %>
         </div>
       </div>
+      <% } %>
     </div>
 
+    <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
     <script>
       document.addEventListener("DOMContentLoaded", function () {
-        // Update timeline progress based on current stage
-        const currentStage = `<%= order.currentStage %>`;
-        const totalStages = 3;
-        const progress = (currentStage / totalStages) * 100;
-        document.querySelector(
-          ".timeline-progress"
-        ).style.width = `${progress}%`;
+        // Only update timeline if order is not cancelled
+        <% if (order.orderStatus !== 'CANCELLED') { %>
+          const currentStage = parseInt('<%= order.currentStage %>');
+          const totalStages = 3; // Number of stages minus 1
+          
+          // Calculate progress width
+          let progress = (currentStage / totalStages) * 100;
+          
+          // Set the progress width with a slight delay for animation effect
+          setTimeout(() => {
+            document.getElementById('timeline-progress').style.width = `${progress}%`;
+          }, 300);
+        <% } %>
 
-        // Handle button clicks
-        document
-          .querySelector(".cancel-btn")
-          .addEventListener("click", function () {
-            if (confirm("Are you sure you want to cancel this order?")) {
-              // Add cancel order logic here
-              console.log("Order cancelled");
-            }
-          });
-
-        document
-          .querySelector(".help-btn")
-          .addEventListener("click", function () {
-            // Add help logic here
-            console.log("Help requested");
-          });
-
-        document
-          .querySelector(".download-btn")
-          .addEventListener("click", function (e) {
-            e.preventDefault();
-            // Add download invoice logic here
-            console.log("Downloading invoice");
-          });
+        // Function to close the cancelled banner
+        window.closeBanner = function() {
+          const banner = document.getElementById('cancelled-banner');
+          if (banner) {
+            banner.style.display = 'none';
+          }
+        };
       });
+
+      // Cancel order function
+      function cancelOrder(orderId) {
+        Swal.fire({
+          title: 'Cancel Order?',
+          text: "Are you sure you want to cancel this order?",
+          icon: 'warning',
+          showCancelButton: true,
+          confirmButtonColor: '#d33',
+          cancelButtonColor: '#3085d6',
+          confirmButtonText: 'Yes, cancel it!',
+          cancelButtonText: 'No, keep it'
+        }).then(async (result) => {
+          if (result.isConfirmed) {
+            try {
+              const response = await fetch(`/cancelOrder/${orderId}`, {
+                method: "POST",
+                headers: {
+                  "Content-Type": "application/json",
+                },
+              });
+
+              const data = await response.json();
+              if (response.ok) {
+                // Success message
+                await Swal.fire({
+                  title: 'Cancelled!',
+                  text: data.message,
+                  icon: 'success'
+                });
+                
+                // Refresh the page to show updated order status
+                window.location.reload();
+              } else {
+                // Error message
+                Swal.fire({
+                  title: 'Error!',
+                  text: data.message || "Failed to cancel order",
+                  icon: 'error'
+                });
+              }
+            } catch (error) {
+              console.error("Error:", error);
+              Swal.fire({
+                title: 'Error!',
+                text: "An error occurred while cancelling the order",
+                icon: 'error'
+              });
+            }
+          }
+        });
+      }
     </script>
   </body>
 </html>

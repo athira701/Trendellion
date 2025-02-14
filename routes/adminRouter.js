@@ -4,6 +4,7 @@ const adminController = require('../controllers/admin/adminController')
 const customerController = require("../controllers/admin/customerController")
 const categoryController = require("../controllers/admin/categoryController")
 const productController = require("../controllers/admin/productController")
+const orderController = require("../controllers/admin/orderController")
 const {userAuth,adminAuth,isAdminAuthenticated} = require("../middlewares/auth")
 const multer=require("multer")
 const path=require('path')
@@ -59,6 +60,8 @@ router.post('/restoreProduct/:id', productController.restoreProduct);
 router.get('/editProduct',productController.loadEditProduct)
 router.post('/editProduct/:id', upload.array('cropImages', 4), productController.editProduct)
 
-
+router.get("/orders",orderController.loadOrder)
+router.get('/singleorderview/:orderId',orderController.singleOrder);
+router.post("/changeStatus",orderController.changeStatus)
 
 module.exports = router

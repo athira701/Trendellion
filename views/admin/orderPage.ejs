@@ -1,0 +1,143 @@
+<%- include('../partials/admin/header1') %>
+
+<section class="content-main">
+    <div class="content-header mb-4">
+        <div>
+            <h2 class="content-title card-title">Order List</h2>
+            <p class="text-muted">Manage and view all user orders</p>
+        </div>
+    </div>
+
+    <div class="card">
+        <header class="card-header">
+            <div class="row gx-3">
+                <div class="col-lg-4 col-md-6 me-auto">
+                    <!-- Placeholder for future search or filter -->
+                </div>
+            </div>
+        </header>
+
+        <div class="card-body">
+            <div class="table-responsive">
+                <table class="table table-hover align-middle text-center">
+                    <thead class="table-light">
+                        <tr>
+                            <th style="width: 10%;">Order ID</th>
+                            <th>Status</th>
+                            <th>Date</th>
+                            <th>Customer</th>
+                            <th>Total Amount</th>
+                            <th style="width: 15%;">Action</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        <% if (orders.length > 0) { %>
+                            <% orders.forEach(order => { %>
+                                <tr>
+                                    <td><%= order.orderId %></td>
+                                    <td>
+                                        <% 
+                                            let badgeClass = 'warning';
+                                            switch(order.orderStatus) {
+                                                case 'DELIVERED':
+                                                    badgeClass = 'success';
+                                                    break;
+                                                case 'CANCELLED':
+                                                    badgeClass = 'danger';
+                                                    break;
+                                                case 'SHIPPED':
+                                                    badgeClass = 'info';
+                                                    break;
+                                                case 'RETURNED':
+                                                    badgeClass = 'secondary';
+                                                    break;
+                                            }
+                                        %>
+                                        <span class="badge bg-<%= badgeClass %>">
+                                            <%= order.orderStatus %>
+                                        </span>
+                                    </td>
+                                    <td><%= new Date(order.createdAt).toLocaleDateString() %></td>
+                                    <td><%= order.userId.name %></td>
+                                    <td>₹<%= order.totalAmount %></td>
+                                    <td>
+                                        <button class="btn btn-primary btn-sm view-btn" data-id="<%= order._id %>">
+                                            View Details
+                                        </button>
+                                    </td>
+                                </tr>
+                                <tr class="bg-light">
+                                    <td colspan="6" class="px-3">
+                                        <div class="d-flex flex-wrap">
+                                            <% order.orderedItems.forEach(item => { %>
+                                                <div class="d-flex align-items-center me-4 mb-2">
+                                                    <img src="/uploads/<%= item.product.productImage[0] %>" 
+                                                        alt="Product" 
+                                                        class="img-fluid rounded me-3" 
+                                                        style="width: 50px; height: 50px; object-fit: cover;">
+                                                    <div>
+                                                        <p class="mb-1 fw-bold"><%= item.product.productName %></p>
+                                                        <small>₹<%= item.price %> x <%= item.quantity %> (Size: <%= item.size %>)</small>
+                                                    </div>
+                                                </div>
+                                            <% }); %>
+                                        </div>
+                                    </td>
+                                </tr>
+                            <% }) %>
+                        <% } else { %>
+                            <tr>
+                                <td colspan="6" class="text-center text-muted py-4">
+                                    <i class="bi bi-box"></i> No orders found.
+                                </td>
+                            </tr>
+                        <% } %>
+                    </tbody>
+                </table>
+            </div>
+        </div>
+    </div>
+
+    <% if (totalPages > 1) { %>
+        <div class="pagination-area mt-4">
+            <nav aria-label="Page navigation example">
+                <ul class="pagination justify-content-center">
+                    <% if (currentPage > 1) { %>
+                        <li class="page-item">
+                            <aclass="page-link" href="?page=<%= currentPage - 1 %>&limit=<%= limit %>" aria-label="Previous">
+                                <i class="bi bi-chevron-left"></i>
+                            </a>
+                        </li>
+                    <% } %>
+                    
+                    <% for (let i = 1; i <= totalPages; i++) { %>
+                        <li class="page-item <%= i === currentPage ? 'active' : '' %>">
+                            <a class="page-link" href="?page=<%= i %>&limit=<%= limit %>"><%= i %></a>
+                        </li>
+                    <% } %>
+                    
+                    <% if (currentPage < totalPages) { %>
+                        <li class="page-item">
+                            <a class="page-link" href="?page=<%= currentPage + 1 %>&limit=<%= limit %>" aria-label="Next">
+                                <i class="bi bi-chevron-right"></i>
+                            </a>
+                        </li>
+                    <% } %>
+                </ul>
+            </nav>
+        </div>
+    <% } %>
+</section>
+
+<%- include('../partials/admin/footer') %>  
+
+<script>
+   document.addEventListener('DOMContentLoaded', function () {
+        document.addEventListener('click', function (event) {
+            if (event.target.classList.contains('view-btn')) {
+                const orderId = event.target.getAttribute('data-id');
+                window.location.href = `/admin/singleorderview/${orderId}`;
+            }
+        });
+    });
+</script>
