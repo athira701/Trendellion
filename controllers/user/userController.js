@@ -264,7 +264,7 @@ const verifyOtp = async (req, res) => {
         const { otp } = req.body;
         console.log("Session data at verifyOtp:", req.session);
         console.log("Received OTP:", otp);
-
+        console.log('User Data',userData);
         if (!req.session.userData) {
             return res.status(400).json({ success: false, message: 'Session expired. Please sign up again.' });
         }
@@ -326,7 +326,6 @@ const resendOtp = async (req,res) =>{
 }
 
 
-
 const forgotPassword = async (req,res) =>{
     try {
         res.render("user/forgotPassword")
@@ -334,6 +333,97 @@ const forgotPassword = async (req,res) =>{
         
     }
 }
+
+const loadForgotOtpPage = async (req,res) => {
+    try {
+        return res.render("user/forgotOtpPage")
+    } catch (error) {
+        
+    }
+}
+
+const forgot = async (req,res) =>{
+    const { email } = req.body;
+    console.log("Email verunnindo:",email)
+
+  try {
+    // Check if the user exists
+    const user = await User.findOne({ email });
+
+    if (!user) {
+      return res.render("user/forgot", {
+        message: "User with this email does not exist.",
+      });
+    }
+
+    // Generate OTP
+    const otp = generateOtp();
+
+    // Send OTP to the user's email
+    const emailSent = await sendVerificationEmail(email, otp);
+
+    if (!emailSent) {
+      return res.render("user/forgotPassword", {
+        message: "Failed to send OTP. Please try again.",
+      });
+    }
+
+    // Store OTP and email in session
+    req.session.forgotPasswordOtp = otp;
+    req.session.forgotPasswordEmail = email;
+
+    // Redirect to OTP verification page
+    console.log("OTP Sent", otp);
+
+    return res.redirect("/forgotOtp");
+  } catch (error) {
+    console.error("Forgot password error:", error);
+    return res.render("user/forgotPassword", {
+      message: "An error occurred. Please try again.",
+    });
+  }
+};
+
+const forgotOtpVerify = async (req,res) =>{
+    try {
+        const { otp } = req.body;
+        console.log("Otp checking:",otp)
+        console.log("req.session.userOtp:",req.session.userOtp)
+        if (!req.session.userOtp || !req.session.email) {
+          return res.status(400).json({
+            status: "error",
+            message: "Session expired. Please request a new OTP.",
+          });
+        }
+    
+        if (otp === req.session.userOtp) {
+          // OTP is correct, verify user
+          await User.updateOne(
+            { email: req.session.email },
+            { $set: { isVerified: true } }
+          );
+    
+          // Clear session data after successful verification
+          req.session.userOtp = null;
+          req.session.userId = null;
+          req.session.email = null;
+    
+          return res.redirect("/login");
+        } else {
+          return res.status(400).send({
+            status: "error",
+            message: "Invalid OTP. Please try again.",
+          });
+        }
+      } catch (error) {
+        console.error("OTP verification error:", error);
+        return res.status(500).json({
+          status: "error",
+          message: "Failed to verify OTP. Please try again.",
+        });
+      }
+}
+
 
 const logout = async (req,res) =>{
     try {
@@ -356,11 +446,10 @@ const logout = async (req,res) =>{
 const shopPageInfo = async (req, res) => {
     try {
         const page = Math.max(1, parseInt(req.query.page) || 1);
-        const limit = 12; // Show 12 products per page
+        const limit = 12;
         const skip = (page - 1) * limit;
-
-        // Get search query from URL
         const searchTerm = req.query.search || '';
+        const sortBy = req.query.sort || 'newest'; // Default sort
 
         // Build search query object
         const searchQuery = {
@@ -368,7 +457,6 @@ const shopPageInfo = async (req, res) => {
             status: 'Available'
         };
 
-        // Add search term condition if it exists
         if (searchTerm) {
             searchQuery.productName = { 
                 $regex: searchTerm, 
@@ -376,24 +464,31 @@ const shopPageInfo = async (req, res) => {
             };
         }
 
+        // Define sort options
+        const sortOptions = {
+            'popular': { purchaseCount: -1 },
+            'price-low': { salePrice: 1 },
+            'price-high': { salePrice: -1 },
+            'featured': { isFeatured: -1, createdAt: -1 },
+            'newest': { createdAt: -1 },
+            'name-asc': { productName: 1 },
+            'name-desc': { productName: -1 }
+        };
+
         // Get total count for pagination
         const totalProducts = await Product.countDocuments(searchQuery);
         const totalPages = Math.ceil(totalProducts / limit);
 
-        // Get products with search and pagination
+        // Get products with search, sort and pagination
         const products = await Product.find(searchQuery)
             .populate('category')
-            .sort({ createdAt: -1 })
+            .sort(sortOptions[sortBy] || sortOptions['newest'])
             .skip(skip)
             .limit(limit);
 
         const category = await Category.find({});
         const user = req.session.user || null;
-        
-        console.log("Search Term:", searchTerm); 
-        console.log("Total Products:", totalProducts); 
-        console.log("Current Page:", page); 
-        // Render the shop page with all necessary data
+
         res.render('user/shop', {
             products,
             category,
@@ -402,7 +497,8 @@ const shopPageInfo = async (req, res) => {
             totalPages,
             searchTerm,
             totalProducts,
-            title: 'Shop' // Add a title if needed
+            currentSort: sortBy,
+            title: 'Shop'
         });
 
     } catch (error) {
@@ -471,6 +567,9 @@ module.exports = {
     verifyOtp,
     resendOtp,
     forgotPassword,
+    loadForgotOtpPage,
+    forgot,
+    forgotOtpVerify,
     logout,
     loadHomePage,
     shopPageInfo,

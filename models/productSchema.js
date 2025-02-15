@@ -61,6 +61,14 @@ const productSchema = new Schema({
             required: true,
             default: 'Available',
         },
+        purchaseCount: {
+            type: Number,
+            default: 0
+        },
+        isFeatured: {
+            type: Boolean,
+            default: false
+        }
     },{ timestamps: true }
 );
 

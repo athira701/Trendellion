@@ -138,11 +138,14 @@
 <body>
     <div class="shop-header">
         <h1>Home > Shop</h1>
-        <select class="sort-dropdown">
-            <option value="popular">Most Popular</option>
-            <option value="newest">Newest</option>
-            <option value="price-low">Price: Low to High</option>
-            <option value="price-high">Price: High to Low</option>
+        <select class="sort-dropdown" id="sort-select">
+            <option value="newest" <%= currentSort === 'newest' ? 'selected' : '' %>>New Arrivals</option>
+            <option value="popular" <%= currentSort === 'popular' ? 'selected' : '' %>>Most Popular</option>
+            <option value="price-low" <%= currentSort === 'price-low' ? 'selected' : '' %>>Price: Low to High</option>
+            <option value="price-high" <%= currentSort === 'price-high' ? 'selected' : '' %>>Price: High to Low</option>
+            <option value="featured" <%= currentSort === 'featured' ? 'selected' : '' %>>Featured</option>
+            <option value="name-asc" <%= currentSort === 'name-asc' ? 'selected' : '' %>>Name: A to Z</option>
+            <option value="name-desc" <%= currentSort === 'name-desc' ? 'selected' : '' %>>Name: Z to A</option>
         </select>
     </div>
     <% if (locals.searchTerm && locals.searchTerm.length > 0) { %>
@@ -211,30 +214,30 @@
             <% }) %>
         </div>
         <!-- Pagination -->
-    <% if (locals.totalPages > 1) { %>
-        <div class="flex justify-center items-center space-x-2 mt-8">
-            <% if (currentPage > 1) { %>
-                <a href="/shop?page=<%= currentPage - 1 %><%= locals.searchTerm ? `&search=${searchTerm}` : '' %>" 
-                   class="px-4 py-2 border rounded hover:bg-gray-100">
-                    Previous
-                </a>
-            <% } %>
-
-            <% for(let i = 1; i <= totalPages; i++) { %>
-                <a href="/shop?page=<%= i %><%= locals.searchTerm ? `&search=${searchTerm}` : '' %>"
-                   class="px-4 py-2 border rounded <%= currentPage === i ? 'bg-pink-500 text-white' : 'hover:bg-gray-100' %>">
-                    <%= i %>
-                </a>
-            <% } %>
-
-            <% if (currentPage < totalPages) { %>
-                <a href="/shop?page=<%= currentPage + 1 %><%= locals.searchTerm ? `&search=${searchTerm}` : '' %>"
-                   class="px-4 py-2 border rounded hover:bg-gray-100">
-                    Next
-                </a>
-            <% } %>
-        </div>
-    <% } %>
+        <% if (locals.totalPages > 1) { %>
+            <div class="flex justify-center items-center space-x-2 mt-8">
+                <% if (currentPage > 1) { %>
+                    <a href="/shop?page=<%= currentPage - 1 %><%= locals.searchTerm ? `&search=${searchTerm}` : '' %>&sort=<%= currentSort %>" 
+                       class="px-4 py-2 border rounded hover:bg-gray-100">
+                        Previous
+                    </a>
+                <% } %>
+        
+                <% for(let i = 1; i <= totalPages; i++) { %>
+                    <a href="/shop?page=<%= i %><%= locals.searchTerm ? `&search=${searchTerm}` : '' %>&sort=<%= currentSort %>"
+                       class="px-4 py-2 border rounded <%= currentPage === i ? 'bg-pink-500 text-white' : 'hover:bg-gray-100' %>">
+                        <%= i %>
+                    </a>
+                <% } %>
+        
+                <% if (currentPage < totalPages) { %>
+                    <a href="/shop?page=<%= currentPage + 1 %><%= locals.searchTerm ? `&search=${searchTerm}` : '' %>&sort=<%= currentSort %>"
+                       class="px-4 py-2 border rounded hover:bg-gray-100">
+                        Next
+                    </a>
+                <% } %>
+            </div>
+        <% } %>
 </div>
         
 
@@ -266,6 +269,19 @@
             totalPages: 10
         };
         document.addEventListener("DOMContentLoaded", () => {
+
+            const sortSelect = document.getElementById('sort-select');
+            if (sortSelect) {
+                sortSelect.addEventListener('change', (e) => {
+                    const currentUrl = new URL(window.location.href);
+                    currentUrl.searchParams.set('sort', e.target.value);
+                
+                // Reset to page 1 when sorting changes
+                    currentUrl.searchParams.set('page', '1');
+                
+                    window.location.href = currentUrl.toString();
+                });
+            }
             // Select all "Add to Cart" buttons
             const addToCartButtons = document.querySelectorAll(".add-to-cart-button");
 
@@ -340,6 +356,7 @@
                     confirmButtonText: "OK"
                 });
             }
+
         });
     });
 });
