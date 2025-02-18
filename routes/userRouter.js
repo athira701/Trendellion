@@ -6,6 +6,7 @@ const productController = require('../controllers/user/productController')
 const categoryController = require('../controllers/user/categoryController')
 const cartController = require('../controllers/user/cartController')
 const addressController = require('../controllers/user/addressController')
+const profileController = require('../controllers/user/profileController')
 const checkoutController = require('../controllers/user/checkoutController')
 const orderController = require('../controllers/user/orderController')
 const passport = require('passport')
@@ -24,12 +25,18 @@ router.get('/verify-otp',userController.loadOtp)
 router.post("/signup",userController.signup)
 router.post("/verify-otp",userController.verifyOtp)
 router.post("/resendotp",userController.resendOtp)
+//forgot Password setup
 router.get("/forgotPassword",userController.forgotPassword)
 router.post("/forgotPassword",userController.forgot)
 router.get('/forgotOtp',userController.loadForgotOtpPage)
 router.post('/forgotOtp',userController.forgotOtpVerify)
+router.get('/resetPassword',userController.loadResetPasswordPage)
+router.post('/resetPassword',userController.resetPassword)
 router.get("/logout",userController.logout)
 
+
+router.get('/change-password', profileController.getChangePassword)
+router.post('/change-password', profileController.changePassword)
 // router.get('/shop',userController.loadShopPage)
 router.get('/shop',userController.shopPageInfo)
 
@@ -83,7 +90,6 @@ router.post('/orderPlaced', orderController.placeOrder);
 router.get('/placedOrder',orderController.orderPlacedpage)
 router.get('/orders',orderController.getOrderPage)
 router.get('/orders/:orderId',orderController.getOrderDetails)
-//router.post('/orders/:orderId/items/:itemId/cancel',orderController.cancelOrderItem)
 router.post('/cancelOrder/:orderId',orderController.cancelOrderItem)
 
 module.exports = router

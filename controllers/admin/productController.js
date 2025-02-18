@@ -16,7 +16,7 @@ const getProductPage = async (req, res) => {
 
         const totalProducts = await Product.countDocuments();
         const products = await Product.find({})
-            .select('productName productImage quantity category salePrice color isBlocked')
+            .select('productName productImage totalStock category salePrice color isBlocked')
             .populate('category') // Populate only the 'name' field of category
             .sort({ createdAt: -1 })
             .skip(skip)
@@ -194,6 +194,7 @@ const addProduct = async (req, res) => {
         // Create product object
         const product = new Product({
             productName: productName,
+            totalStock,
             description: description,
             brand: safeTrim(details.brand) || "Unknown",
             category: categoryId,
@@ -282,37 +283,68 @@ const loadEditProduct = async (req, res) => {
 const editProduct = async (req, res) => {
     try {
         console.log('Edit product request received');
-
         const productId = req.params.id;
         const {
             productName,
             price,
             sPrice,
             color,
-            size,
-            quantity,
+            size_s,
+            size_m,
+            size_l,
+            size_xl,
             description,
             categoryId,
             visibility
         } = req.body;
 
+        // Validation checks
         if (!/^[A-Za-z][A-Za-z ]*$/.test(productName)) {
-            return res.status(400).json({ success: false, message: 'Product name should contain only alphabets and not start with a space.' });
+            return res.status(400).json({ 
+                success: false, 
+                message: 'Product name should contain only alphabets and not start with a space.' 
+            });
         }
+
         if (!description.trim() || description.length < 10 || description.length > 250) {
-            return res.status(400).json({ success: false, message: 'Description must be between 10 to 250 characters and should not start with a space.' });
+            return res.status(400).json({ 
+                success: false, 
+                message: 'Description must be between 10 to 250 characters and should not start with a space.' 
+            });
         }
+
         if (!/^[1-9][0-9]*$/.test(price) || price <= 0) {
-            return res.status(400).json({ success: false, message: 'Price must be a positive number and not zero.' });
+            return res.status(400).json({ 
+                success: false, 
+                message: 'Price must be a positive number and not zero.' 
+            });
         }
-        if (!/^[1-9][0-9]*$/.test(sPrice) || sPrice < 0 || sPrice > price) {
-            return res.status(400).json({ success: false, message: 'Sale Price must be a non-negative number and less than or equal to Price.' });
+
+        if (!/^[0-9]*$/.test(sPrice) || sPrice < 0 || sPrice > price) {
+            return res.status(400).json({ 
+                success: false, 
+                message: 'Sale Price must be a non-negative number and less than or equal to Price.' 
+            });
         }
+
         if (!/^[A-Za-z]+$/.test(color)) {
-            return res.status(400).json({ success: false, message: 'Color should contain only alphabets and no numbers.' });
+            return res.status(400).json({ 
+                success: false, 
+                message: 'Color should contain only alphabets and no numbers.' 
+            });
         }
-        if (!/^[1-9][0-9]*$/.test(quantity) || quantity <= 0) {
-            return res.status(400).json({ success: false, message: 'Quantity must be a positive number and not zero.' });
+
+        // Calculate total stock from all sizes
+        const totalStock = parseInt(size_s || 0) + 
+                         parseInt(size_m || 0) + 
+                         parseInt(size_l || 0) + 
+                         parseInt(size_xl || 0);
+
+        if (totalStock <= 0) {
+            return res.status(400).json({ 
+                success: false, 
+                message: 'At least one size must have a positive quantity.' 
+            });
         }
 
         // Find the existing product
@@ -329,8 +361,25 @@ const editProduct = async (req, res) => {
         product.regularPrice = price;
         product.salePrice = sPrice;
         product.color = color;
-        product.size = size;
-        product.quantity = quantity;
+        product.stock = [
+            {
+                size: 'S',
+                quantity: parseInt(size_s) || 0
+            },
+            {
+                size: 'M',
+                quantity: parseInt(size_m) || 0
+            },
+            {
+                size: 'L',
+                quantity: parseInt(size_l) || 0
+            },
+            {
+                size: 'XL',
+                quantity: parseInt(size_xl) || 0
+            }
+        ];
+        product.totalStock = totalStock;
         product.description = description;
         product.category = categoryId;
         product.visibility = visibility;
@@ -338,7 +387,6 @@ const editProduct = async (req, res) => {
         // Handle image uploads
         if (req.files && req.files.length > 0) {
             const uploadedImages = req.files.map(file => file.filename);
-
             // Delete old images if new ones are provided
             if (product.productImage && product.productImage.length > 0) {
                 product.productImage.forEach(image => {
@@ -348,12 +396,10 @@ const editProduct = async (req, res) => {
                     }
                 });
             }
-
-            // Update product images with new uploads
             product.productImage = uploadedImages;
         }
 
-        // Save updated product to the database
+        // Save updated product
         await product.save();
 
         res.status(200).json({
@@ -361,6 +407,7 @@ const editProduct = async (req, res) => {
             message: 'Product updated successfully',
             redirectUrl: '/admin/allProduct',
         });
+
     } catch (error) {
         console.error('Error updating product:', error);
         res.status(500).json({
@@ -368,7 +415,7 @@ const editProduct = async (req, res) => {
             message: 'An error occurred while updating the product',
         });
     }
-}
+};
 
 const updateProductImages = async (req, res) => {
     try {

@@ -25,37 +25,36 @@ const login = async (req, res) => {
     try {
         const { email, password } = req.body;
 
-        console.log("req.body:", req.body);
-        console.log("email:", email);
-
+        // Basic validation
         if (!email || !password) {
-            console.log("Email or password missing");
-            return res.redirect("/admin/login");
+            return res.redirect('/admin/login?error=All fields are required');
         }
 
         // Find admin user
         const admin = await User.findOne({ email: email, isAdmin: true });
-        console.log("admin:", admin);
 
-        if (admin) {
-            // Compare password (bcrypt.compare is asynchronous)
-            const passwordMatch = await bcrypt.compare(password, admin.password);
-            if (passwordMatch) {
-                console.log("Password matched");
-                req.session.admin = true; // Set admin session flag
-                return res.redirect("/admin/dashboard");
-            } else {
-                console.log("Invalid password");
-                return res.redirect("/admin/login");
-            }
-        } else {
-            console.log("Admin not found");
-            return res.redirect("/admin/login");
+        if (!admin) {
+            return res.redirect('/admin/login?error=Invalid username or password');
         }
-        
+
+        // Check password
+        const passwordMatch = await bcrypt.compare(password, admin.password);
+
+        if (!passwordMatch) {
+            return res.redirect('/admin/login?error=Invalid username or password');
+        }
+
+        // Set session
+        req.session.admin = {
+            id: admin._id,
+            email: admin.email
+        };
+
+        return res.redirect('/admin/dashboard');
+
     } catch (error) {
-        console.log("Login error:", error);
-        return res.redirect("/pageerror");
+        console.error('Login error:', error);
+        return res.redirect('/admin/login?error=Something went wrong. Try again.');
     }
 };
 

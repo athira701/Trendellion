@@ -62,25 +62,36 @@
                                     <input type="text" class="form-control" id="color" name="color"
                                         value="<%= product.color %>" required  >
                                 </div>
-                                <div class="col-md-4 mb-3">
-                                    <label for="quantity" class="form-label">Quantity</label>
-                                    <input type="number" class="form-control" id="quantity" name="quantity"
-                                        value="<%= product.quantity %>" required>
-                                </div>
-                                <div class="col-md-4 mb-3">
-                                    <label for="size" class="form-label">Size</label>
-                                    <select 
-                                        id="size" 
-                                        name="size[]" 
-                                        multiple 
-                                        class="form-select"
-                                        required
-                                    >
-                                        <option value="S">S</option>
-                                        <option value="M">M</option>
-                                        <option value="L">L</option>
-                                    </select>
-                                </div>
+                                <!-- Replace the existing size and quantity fields with: -->
+<div class="col-md-4 mb-3">
+    <label class="form-label" for="sizes">Sizes & Stock</label>
+    <div class="size-quantity-grid" id="quantity">
+      <div class="size-quantity">
+        <label for="size-s">Size S</label>
+        <input type="number" id="size-s" name="size_s" min="0" 
+          value="<%= product.stock.find(s => s.size === 'S')?.quantity || 0 %>"
+          placeholder="Qty for S">
+      </div>
+      <div class="size-quantity">
+        <label for="size-m">Size M</label>
+        <input type="number" id="size-m" name="size_m" min="0" 
+          value="<%= product.stock.find(s => s.size === 'M')?.quantity || 0 %>"
+          placeholder="Qty for M">
+      </div>
+      <div class="size-quantity">
+        <label for="size-l">Size L</label>
+        <input type="number" id="size-l" name="size_l" min="0" 
+          value="<%= product.stock.find(s => s.size === 'L')?.quantity || 0 %>"
+          placeholder="Qty for L">
+      </div>
+      <div class="size-quantity">
+        <label for="size-xl">Size XL</label>
+        <input type="number" id="size-xl" name="size_xl" min="0" 
+          value="<%= product.stock.find(s => s.size === 'XL')?.quantity || 0 %>"
+          placeholder="Qty for XL">
+      </div>
+    </div>
+  </div>
                             </div>
                         </div>
                     </div>

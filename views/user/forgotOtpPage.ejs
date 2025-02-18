@@ -264,8 +264,8 @@
             $.ajax({
                 type: "POST",
                 url: "/forgotOtp",
-                contentType: 'application/json',
-                data: JSON.stringify({ otp: completeOtp }),
+                // contentType: 'application/json',
+                data: { otp: completeOtp },
                 success: function(response) {
                     if (response.success) {
                         isVerified = true; // Mark OTP as verified
