@@ -1,0 +1,252 @@
+<%-include('../../views/partials/user/header')%>
+<!-- Main Content Section -->
+<div class="wishlist-container p-6">
+    <div class="breadcrumb text-sm mb-4">
+        <span>Home</span> > <span>Wishlist</span>
+    </div>
+    
+    <h1 class="text-2xl font-semibold mb-6">Wishlist</h1>
+
+    <!-- Wishlist Items -->
+    <div class="wishlist-container">
+        <% if (wishlistItems && wishlistItems.items && wishlistItems.items.length > 0) { %>
+            <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+                <% wishlistItems.items.forEach(item => { %>
+                    <div class="border rounded-lg p-4 shadow-sm">
+                        <div class="flex flex-col h-full">
+                            <% if (item.productId && item.productId.productImage && item.productId.productImage.length > 0) { %>
+                                <img src="/uploads/<%= item.productId.productImage[0] %>" 
+                                     alt="<%= item.productId.productName %>" 
+                                     class="w-full h-48 object-cover rounded-md mb-4">
+                            <% } %>
+
+                            <div class="flex-grow">
+                                <h3 class="text-lg font-semibold mb-2">
+                                    <%= item.productId.productName %>
+                                </h3>
+
+                                <p class="text-gray-600 mb-2">
+                                    Size: <%= item.selectedSize %>
+                                </p>
+
+                                <p class="text-xl font-bold text-pink-500 mb-4">
+                                    ₹<%= item.productId.salePrice %>
+                                </p>
+
+                                <% if (item.productId.regularPrice > item.productId.salePrice) { %>
+                                    <p class="text-sm text-gray-500 line-through mb-2">
+                                        ₹<%= item.productId.regularPrice %>
+                                    </p>
+                                <% } %>
+
+                                <div class="flex justify-between items-center mt-4">
+                                    <button onclick="addToCart('<%= item.productId._id %>', '<%= item.selectedSize %>')"
+                                            class="add-to-cart-button bg-pink-500 text-white px-4 py-2 rounded hover:bg-blue-700 transition">
+                                        Add to Cart
+                                    </button>
+                                    <button onclick="removeFromWishlist('<%= item.productId._id %>')"
+                                            class="text-red-600 hover:text-red-700">
+                                        <i class="fas fa-trash">Remove</i>
+                                    </button>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                <% }); %>
+            </div>
+        <% } else { %>
+            <div class="text-center py-12">
+                <div class="text-gray-500 mb-4">
+                    Your wishlist is empty
+                </div>
+                <a href="/shop" 
+                   class="inline-block bg-pink-500 text-white px-6 py-3 rounded-lg hover:bg-pink-400 transition">
+                    Continue Shopping
+                </a>
+            </div>
+        <% } %>
+    </div>
+
+    
+</div>
+
+<!-- CSS for responsive design -->
+<style>
+    @media (max-width: 768px) {
+        .wishlist-item {
+            flex-direction: column;
+            text-align: center;
+        }
+        
+        .wishlist-item .flex {
+            flex-direction: column;
+        }
+        
+        .actions {
+            margin-top: 1rem;
+        }
+        
+        .newsletter-form {
+            flex-direction: column;
+        }
+        
+        .newsletter-form input,
+        .newsletter-form button {
+            width: 100%;
+        }
+    }
+</style>
+
+<!-- Add the wishlist JavaScript -->
+<script //src="/js/wishlist-page.js"></script>
+<script>
+    // Function to remove item from wishlist
+async function removeFromWishlist(productId) {
+    try {
+        // Find the size from the parent element
+        const itemElement = document.querySelector(`button[onclick="removeFromWishlist('${productId}')"]`)
+            .closest('.border');
+        const sizeElement = itemElement.querySelector('p.text-gray-600');
+        const selectedSize = sizeElement.textContent.trim().replace('Size: ', '');
+        
+
+        // Send request to backend
+        const response = await fetch('/removeFromWishlist', {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json'
+            },
+            body: JSON.stringify({
+                productId,
+                selectedSize
+            })
+        });
+
+        const data = await response.json();
+
+        if (data.success) {
+            // Remove the item from DOM
+            itemElement.remove();
+            
+            // Check if wishlist is empty after removal
+            const wishlistItems = document.querySelectorAll('.wishlist-container .border');
+            if (wishlistItems.length === 0) {
+                const wishlistContainer = document.querySelector('.wishlist-container');
+                wishlistContainer.innerHTML = `
+                    <div class="text-center py-12">
+                        <div class="text-gray-500 mb-4">
+                            Your wishlist is empty
+                        </div>
+                        <a href="/products" 
+                           class="inline-block bg-blue-600 text-white px-6 py-3 rounded-lg hover:bg-blue-700 transition">
+                            Continue Shopping
+                        </a>
+                    </div>
+                `;
+            }
+            
+            // Show success message
+            showNotification('Item removed from wishlist', 'success');
+        } else {
+            showNotification(data.message || 'Failed to remove item', 'error');
+        }
+    } catch (error) {
+        console.error('Error removing from wishlist:', error);
+        showNotification('Failed to remove item from wishlist', 'error');
+    }
+}
+
+// Function to add item to cart
+async function addToCart(productId, selectedSize) {
+    try {
+        const response = await fetch(`/addToCart/${productId}`, {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json'
+            },
+            body: JSON.stringify({
+                size:selectedSize,
+                quantity: 1
+            })
+        });
+        const data = await response.json();
+
+        if (data.success) {
+            showNotification('Item added to cart', 'success');
+            
+            // Optional: Update cart count in the header if you have one
+            const cartCountElement = document.querySelector('.cart-count');
+            if (cartCountElement && data.cartItemCount) {
+                cartCountElement.textContent = data.cartItemCount;
+            }
+        } else {
+            showNotification(data.message || 'Error,Failed to add item to cart', 'error');
+        }
+    } catch (error) {
+        console.error('Error adding to cart:', error);
+        showNotification('Failed to add item to cart', 'error');
+    }
+}
+
+// Helper function to show notifications
+function showNotification(message, type = 'info') {
+    // Check if notification container exists, if not create it
+    let notificationContainer = document.getElementById('notification-container');
+    if (!notificationContainer) {
+        notificationContainer = document.createElement('div');
+        notificationContainer.id = 'notification-container';
+        notificationContainer.style.position = 'fixed';
+        notificationContainer.style.top = '20px';
+        notificationContainer.style.right = '20px';
+        notificationContainer.style.zIndex = '1000';
+        document.body.appendChild(notificationContainer);
+    }
+
+    // Create notification element
+    const notification = document.createElement('div');
+    notification.className = `notification ${type}`;
+    notification.style.padding = '12px 20px';
+    notification.style.marginBottom = '10px';
+    notification.style.borderRadius = '4px';
+    notification.style.boxShadow = '0 2px 5px rgba(0,0,0,0.2)';
+    notification.style.animation = 'fadeIn 0.3s, fadeOut 0.3s 2.7s';
+    
+    // Set color based on type
+    if (type === 'success') {
+        notification.style.backgroundColor = '#4CAF50';
+        notification.style.color = 'white';
+    } else if (type === 'error') {
+        notification.style.backgroundColor = '#f44336';
+        notification.style.color = 'white';
+    } else {
+        notification.style.backgroundColor = '#2196F3';
+        notification.style.color = 'white';
+    }
+
+    notification.textContent = message;
+
+    // Add to container
+    notificationContainer.appendChild(notification);
+
+    // Remove after 3 seconds
+    setTimeout(() => {
+        notification.remove();
+    }, 3000);
+}
+
+// Add animation styles
+const style = document.createElement('style');
+style.textContent = `
+    @keyframes fadeIn {
+        from { opacity: 0; transform: translateY(-20px); }
+        to { opacity: 1; transform: translateY(0); }
+    }
+    @keyframes fadeOut {
+        from { opacity: 1; transform: translateY(0); }
+        to { opacity: 0; transform: translateY(-20px); }
+    }
+`;
+document.head.appendChild(style);
+</script>
+
+<%-include('../../views/partials/user/footer')%>

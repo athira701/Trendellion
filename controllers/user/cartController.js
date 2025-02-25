@@ -269,7 +269,7 @@ const updateCart = async (req, res) => {
 //     try {
 //         const userId = req.session.user?.id;
         
-//         // Add validation for userId
+//         //Add validation for userId
 //         if (!userId) {
 //             return res.status(401).json({ error: 'User not authenticated' });
 //         }

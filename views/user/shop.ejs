@@ -133,6 +133,30 @@
                 grid-template-columns: 1fr;
             }
         }
+        .notification {
+    background-color: #4CAF50;
+    color: white;
+    padding: 16px;
+    border-radius: 4px;
+    margin-bottom: 10px;
+    animation: slideIn 0.3s ease-out;
+    box-shadow: 0 2px 5px rgba(0,0,0,0.2);
+}
+
+@keyframes slideIn {
+    from {
+        transform: translateX(100%);
+        opacity: 0;
+    }
+    to {
+        transform: translateX(0);
+        opacity: 1;
+    }
+}
+
+.wishlist-btn.active {
+    color: #ef4444;
+}
     </style>
 </head>
 <body>
@@ -165,12 +189,14 @@
                             <img src="/uploads/<%= product.productImage[0] %>" alt="<%= product.productName %>" class="w-full h-64 object-cover">
                             <span class="absolute top-2 left-2 bg-red-500 text-white text-sm px-2 py-1 rounded">-40%</span>
                             <div class="absolute top-2 right-2 flex flex-col space-y-2">
-                                <button class="action-button bg-white text-gray-700 rounded-full p-2 hover:text-red-500 transition-colors">
-                                    ♡
-                                </button>
+                                <!-- <button class="wishlist-btn action-button bg-white text-gray-700 rounded-full p-2 hover:text-red-500 transition-colors"
+                                data-product-id="<%= product._id %>"
+                                onclick="handleWishlist(event, this)">                                    
+                                ♡                           
+                            </button>
                                 <button class="action-button bg-white text-gray-700 rounded-full p-2 hover:text-blue-500 transition-colors">
                                     👁
-                                </button>
+                                </button> -->
                             </div>
                         </div>
 
@@ -213,6 +239,7 @@
                 <% } %>
             <% }) %>
         </div>
+        <div id="notification-container" class="fixed top-20 right-4 z-50"></div>
         <!-- Pagination -->
         <% if (locals.totalPages > 1) { %>
             <div class="flex justify-center items-center space-x-2 mt-8">
@@ -243,7 +270,7 @@
 
    
 
-    <script>
+<script>
         // Example products data structure for reference
         const productsData = {
             products: [
@@ -356,13 +383,108 @@
                     confirmButtonText: "OK"
                 });
             }
-
         });
     });
-});
-            
+    async function handleWishlist(event, button) {
+        event.preventDefault();
+        
+        const productCard = button.closest('.product-card');
+        const productId = button.dataset.productId;
+        const sizeSelect = productCard.querySelector('#size-select');
+        const selectedSize = sizeSelect.value;
 
-    </script>
+        if (!selectedSize) {
+            await Swal.fire({
+                title: "Size Required",
+                text: "Please select a size before adding to wishlist",
+                icon: "warning",
+                confirmButtonText: "OK"
+            });
+            return;
+        }
+
+        try {
+            const response = await fetch('/addToWishlist', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json'
+                },
+                body: JSON.stringify({
+                    productId,
+                    selectedSize
+                })
+            });
+
+            const data = await response.json();
+
+            if (data.success) {
+                button.innerHTML = '❤️';
+                button.classList.add('active');
+                //added now
+                button.dataset.selectedSize = selectedSize
+                await Swal.fire({
+                    title: "Success!",
+                    text: "Product added to wishlist!",
+                    icon: "success",
+                    confirmButtonText: "OK"
+                });
+            } else {
+                await Swal.fire({
+                    title: "Notice",
+                    text: data.message || 'Failed to add to wishlist',
+                    icon: "info",
+                    confirmButtonText: "OK"
+                });
+            }
+        } catch (error) {
+            console.error('Wishlist operation failed:', error);
+            await Swal.fire({
+                title: "Error!",
+                text: "Failed to update wishlist",
+                icon: "error",
+                confirmButtonText: "OK"
+            });
+        }
+    }
+
+    // Add global handleWishlist function
+    window.handleWishlist = handleWishlist;
+
+    // Check Wishlist Status
+    async function checkWishlistStatus() {
+        try {
+            const response = await fetch('/getWishlist');
+            const data = await response.json();
+            
+            if (data.success && data.wishlist) {
+                const wishlistItems = data.wishlist.items;
+                const wishlistButtons = document.querySelectorAll('.wishlist-btn');
+                
+                wishlistButtons.forEach(button => {
+                    const productId = button.dataset.productId;
+                    
+                    const isInWishlist = wishlistItems.some(item => 
+                        item.productId === productId
+                    );
+                    
+                    if (isInWishlist) {
+                        button.innerHTML = '❤️';
+                        button.classList.add('active');
+                    }
+                });
+            }
+        } catch (error) {
+            console.error('Failed to check wishlist status:', error);
+        }
+    }
+
+    // Initialize wishlist status
+    checkWishlistStatus();
+});
+
+
+
+</script>
 </body>
 </html>
 <%-include('../../views/partials/user/footer')%>

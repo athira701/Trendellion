@@ -17,6 +17,7 @@ const getCheckoutPage = async (req, res) => {
 
         // Fetch the user's cart details
         const userCart = await Cart.findOne({ userId });
+        console.log("userCart:",userCart)
 
         let cartItems = [];
         let subtotal = 0;

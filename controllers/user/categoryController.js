@@ -6,26 +6,26 @@ const displayCategoryProducts = async (req, res) => {
         const id = req.query.categoryId; // 'men', 'women', or 'kids'
         console.log("id",id)
 
-        const page = Math.max(1, parseInt(req.query.page) || 1); //
+        const page = Math.max(1, parseInt(req.query.page) || 1); 
         const limit = 6; 
-        const skip = (page - 1) * limit;                         //
+        const skip = (page - 1) * limit;                         
 
-        const searchTerm = req.query.search || '';               //
+        const searchTerm = req.query.search || '';               
 
 
-        const searchQuery = {                                     //
+        const searchQuery = {                                     
             isBlocked: false,
             status: 'Available'
-        };                                                        //
-        if (searchTerm) {                                         //
+        };                                                        
+        if (searchTerm) {                                         
             searchQuery.productName = { 
                 $regex: searchTerm, 
                 $options: 'i' 
             };
-        }                                                         //
+        }                                                         
 
-        const totalProducts = await Product.countDocuments(searchQuery);        //
-        const totalPages = Math.ceil(totalProducts / limit);                    //
+        const totalProducts = await Product.countDocuments(searchQuery);        
+        const totalPages = Math.ceil(totalProducts / limit);                    
         
 
         // Query products with category and search

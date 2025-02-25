@@ -541,7 +541,7 @@
                             <span class="text-gray-600">(150 Reviews)</span>
                         </div>
                     </div>
-                    <button class="wishlist-btn text-gray-500 hover:text-red-500">
+                    <button class="wishlist-btn text-gray-500 hover:text-red-500 transition-colors">
                         <i class="far fa-heart text-2xl"></i>
                     </button>
                 </div>
@@ -559,13 +559,13 @@
                 </div> -->
                 <div class="mb-8 ">
                     <label for="size-select" class="block text-gray-700 font-medium mb-2">Select Size</label>
-                    <select id="size-select" class="w-1/4 border border-gray-300 rounded-lg p-3 focus:ring-2 focus:ring-pink-300 focus:border-transparent bg-white">
+                    <select id="size-select" class="w-full sm:w-1/2 md:w-1/3 border border-gray-300 rounded-lg p-3 focus:ring-2 focus:ring-pink-300 focus:border-transparent bg-white">
                         <% if (product && product.stock && product.stock.length > 0) { %>
                             <% product.stock.forEach(function(stock) { %>
-                              <option value="<%= stock.size %>"><%= stock.size %></option>
+                              <option value="<%= stock.size %>"><%= stock.size %> (<%= stock.quantity %> in stock)</option>
                             <% }); %>
                           <% } else { %>
-                            <option value="">N/A</option>
+                            <option value="">Out of Stock</option>
                           <% } %>
                           
                           
@@ -606,15 +606,18 @@
                 
                 
           
-                <form id="addToCartForm"   method="post">
-                    <input type="hidden" name="quantity" id="quantity-input" value="1">
-                    <button 
-                    type="button"
-                    id="addToCartButton"
-                    class="w-full border border-red-500 text-pink-500 py-3 rounded-md hover:bg-pink-500 hover:text-white transition duration-300">
-                    Add To Cart
-                  </button>
-                </form>
+       <div class="space-y-4">
+        <button 
+            id="addToCartButton" 
+            class="w-full border border-pink-500 text-pink-500 font-medium py-3 rounded-md hover:bg-pink-500 hover:text-white transition duration-300"
+            data-product-id="<%= product._id %>">
+            Add to Cart
+        </button>
+        
+        <button class="w-full bg-pink-500 text-white font-medium py-3 rounded-md hover:bg-pink-600 transition duration-300">
+            Buy Now
+        </button>
+    </div>
                 
                 
 
@@ -624,10 +627,7 @@
                     </form>
           
 
-                    <button class="w-full border border-red-500 text-pink-500 py-3 rounded-md hover:bg-pink-500 hover:text-white transition duration-300">
-                        Buy Now
-                    </button>
-                </div>
+                    
 
                 <div class="mt-6 bg-gray-100 p-4 rounded-md">
                     <div class="flex items-center mb-2">
@@ -766,6 +766,205 @@
                 document.getElementById('mainProductImage').src = this.src;
             });
         });
+
+        const wishlistBtn = document.querySelector('.wishlist-btn');
+    if (wishlistBtn) {
+        wishlistBtn.addEventListener('click', async function() {
+            const productId = document.getElementById('addToCartButton').getAttribute('data-product-id');
+            const sizeSelect = document.getElementById('size-select');
+            const selectedSize = sizeSelect ? sizeSelect.value : '';
+            
+            if (!selectedSize) {
+                await Swal.fire({
+                    title: "Size Required",
+                    text: "Please select a size before adding to wishlist",
+                    icon: "warning",
+                    confirmButtonText: "OK"
+                });
+                return;
+            }
+            
+            try {
+                const response = await fetch('/addToWishlist', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json'
+                    },
+                    body: JSON.stringify({
+                        productId,
+                        selectedSize
+                    })
+                });
+                
+                const data = await response.json();
+                
+                if (data.success) {
+                    // Change heart icon from regular to solid
+                    const heartIcon = this.querySelector('i');
+                    heartIcon.classList.remove('far');
+                    heartIcon.classList.add('fas');
+                    
+                    await Swal.fire({
+                        title: "Success!",
+                        text: "Product added to wishlist!",
+                        icon: "success",
+                        confirmButtonText: "OK"
+                    });
+                } else {
+                    await Swal.fire({
+                        title: "Notice",
+                        text: data.message || 'Failed to add to wishlist',
+                        icon: "info",
+                        confirmButtonText: "OK"
+                    });
+                }
+            } catch (error) {
+                console.error('Wishlist operation failed:', error);
+                await Swal.fire({
+                    title: "Error!",
+                    text: "Failed to update wishlist",
+                    icon: "error",
+                    confirmButtonText: "OK"
+                });
+            }
+        });
+    }
+    
+    // Add to Cart functionality
+    const addToCartButton = document.getElementById('addToCartButton');
+    if (addToCartButton) {
+        addToCartButton.addEventListener('click', async function(e) {
+            e.preventDefault();
+            
+            const productId = this.getAttribute('data-product-id');
+            const sizeSelect = document.getElementById('size-select');
+            const quantityInput = document.getElementById('quantity-input');
+            
+            const size = sizeSelect ? sizeSelect.value : '';
+            const quantity = quantityInput ? parseInt(quantityInput.value) : 1;
+            
+            if (!size) {
+                await Swal.fire({
+                    title: "Size Required",
+                    text: "Please select a size before adding to cart",
+                    icon: "warning",
+                    confirmButtonText: "OK"
+                });
+                return;
+            }
+            
+            try {
+                // Show loading state
+                addToCartButton.disabled = true;
+                addToCartButton.innerHTML = `
+                    <svg class="animate-spin h-5 w-5 mx-auto" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
+                        <circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle>
+                        <path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
+                    </svg>`;
+                
+                const response = await fetch(`/addToCart/${productId}`, {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json'
+                    },
+                    body: JSON.stringify({
+                        quantity: quantity,
+                        size: size
+                    })
+                });
+                
+                const data = await response.json();
+                
+                if (response.ok) {
+                    // Success animation and message
+                    const Toast = Swal.mixin({
+                        toast: true,
+                        position: 'top-end',
+                        showConfirmButton: false,
+                        timer: 3000,
+                        timerProgressBar: true,
+                        didOpen: (toast) => {
+                            toast.addEventListener('mouseenter', Swal.stopTimer);
+                            toast.addEventListener('mouseleave', Swal.resumeTimer);
+                        }
+                    });
+                    
+                    Toast.fire({
+                        icon: 'success',
+                        title: 'Product added to cart successfully!'
+                    });
+                    
+                    // Update cart count if available
+                    const cartCount = document.querySelector('.cart-count');
+                    if (cartCount && data.cartItemCount) {
+                        cartCount.textContent = data.cartItemCount;
+                    }
+                    
+                    // "Added" animation
+                    addToCartButton.classList.add('bg-green-500', 'text-white', 'border-green-500');
+                    addToCartButton.innerHTML = `
+                        <span class="flex items-center justify-center">
+                            <svg class="w-5 h-5 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"></path>
+                            </svg>
+                            Added to Cart
+                        </span>`;
+                    
+                    // Reset button after delay
+                    setTimeout(() => {
+                        addToCartButton.classList.remove('bg-green-500', 'text-white', 'border-green-500');
+                        addToCartButton.innerHTML = 'Add to Cart';
+                        addToCartButton.disabled = false;
+                    }, 2000);
+                } else {
+                    throw new Error(data.message || 'Error adding to cart');
+                }
+            } catch (error) {
+                console.error('Add to Cart Error:', error);
+                
+                // Show error message
+                await Swal.fire({
+                    title: 'Error!',
+                    text: error.message || 'Failed to add product to cart',
+                    icon: 'error',
+                    confirmButtonText: 'OK'
+                });
+                
+                // Reset button
+                addToCartButton.disabled = false;
+                addToCartButton.innerHTML = 'Add to Cart';
+            }
+        });
+    }
+    async function checkWishlistStatus() {
+        try {
+            const productId = document.getElementById('addToCartButton').getAttribute('data-product-id');
+            const response = await fetch('/getWishlist');
+            const data = await response.json();
+            
+            if (data.success && data.wishlist) {
+                const wishlistItems = data.wishlist.items;
+                const wishlistBtn = document.querySelector('.wishlist-btn');
+                
+                if (wishlistBtn) {
+                    const isInWishlist = wishlistItems.some(item => 
+                        item.productId === productId
+                    );
+                    
+                    if (isInWishlist) {
+                        const heartIcon = wishlistBtn.querySelector('i');
+                        heartIcon.classList.remove('far');
+                        heartIcon.classList.add('fas');
+                    }
+                }
+            }
+        } catch (error) {
+            console.error('Failed to check wishlist status:', error);
+        }
+    }
+    
+    // Initialize wishlist status
+    checkWishlistStatus();
 
         // Color Selection
         document.querySelectorAll('.color-option').forEach(option => {

@@ -73,7 +73,7 @@ const orderSchema = new Schema({
   },
   deliveryFee: {
     type: Number,
-    default: 0
+    default: 100
   },
   paymentMethod: {
     type: String,

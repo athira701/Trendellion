@@ -60,8 +60,13 @@ router.post('/restoreProduct/:id', productController.restoreProduct);
 router.get('/editProduct',productController.loadEditProduct)
 router.post('/editProduct/:id', upload.array('cropImages', 4), productController.editProduct)
 
+//Order management
 router.get("/orders",orderController.loadOrder)
 router.get('/singleorderview/:orderId',orderController.singleOrder);
 router.post("/changeStatus",orderController.changeStatus)
+
+
+
+
 
 module.exports = router

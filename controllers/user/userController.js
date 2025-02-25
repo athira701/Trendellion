@@ -624,6 +624,13 @@ const shopPageInfo = async (req, res) => {
 
         const category = await Category.find({});
         const user = req.session.user || null;
+        // let wishlistItems = [];
+        // if (req.session.user) {
+        //     const wishlist = await Wishlist.findOne({ userId: req.session.user._id });
+        //     if (wishlist) {
+        //         wishlistItems = wishlist.items.map(item => item.productId.toString());
+        //     }
+        // }
 
         res.render('user/shop', {
             products,
@@ -634,7 +641,8 @@ const shopPageInfo = async (req, res) => {
             searchTerm,
             totalProducts,
             currentSort: sortBy,
-            title: 'Shop'
+            title: 'Shop',
+            // wishlistItems
         });
 
     } catch (error) {

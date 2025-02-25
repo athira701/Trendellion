@@ -9,6 +9,8 @@ const addressController = require('../controllers/user/addressController')
 const profileController = require('../controllers/user/profileController')
 const checkoutController = require('../controllers/user/checkoutController')
 const orderController = require('../controllers/user/orderController')
+const paymentController = require('../controllers/user/paymentController')
+const wishlistController = require('../controllers/user/wishlistController')
 const passport = require('passport')
 const { isAuthenticated, isUserAuthenticated,checkUserBlocked, addressMiddleware } = require('../middlewares/auth')
 
@@ -91,5 +93,22 @@ router.get('/placedOrder',orderController.orderPlacedpage)
 router.get('/orders',orderController.getOrderPage)
 router.get('/orders/:orderId',orderController.getOrderDetails)
 router.post('/cancelOrder/:orderId',orderController.cancelOrderItem)
+
+//payment through Razorpay
+router.post('/createRazorpayOrder',paymentController.createOrder)
+
+//wishlist management
+// router.post('/togglewishlist',wishlistController.toggleWishlistItem)
+// router.get('/getwishlist',wishlistController.getWishlist)
+// router.get('/checkwishlist',wishlistController.checkWishlistItem)
+
+router.post('/addToWishlist',wishlistController.addToWishlist)
+router.post('/removeFromWishlist',wishlistController.removeFromWishlist)
+router.get('/getWishlist',wishlistController.getWishlist)
+//router.get('/checkWishlistStatus',wishlistController.checkWishlistStatus)
+
+
+
+
 
 module.exports = router
