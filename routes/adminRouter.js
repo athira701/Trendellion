@@ -5,6 +5,7 @@ const customerController = require("../controllers/admin/customerController")
 const categoryController = require("../controllers/admin/categoryController")
 const productController = require("../controllers/admin/productController")
 const orderController = require("../controllers/admin/orderController")
+const couponController = require('../controllers/admin/couponController')
 const {userAuth,adminAuth,isAdminAuthenticated} = require("../middlewares/auth")
 const multer=require("multer")
 const path=require('path')
@@ -65,7 +66,12 @@ router.get("/orders",orderController.loadOrder)
 router.get('/singleorderview/:orderId',orderController.singleOrder);
 router.post("/changeStatus",orderController.changeStatus)
 
-
+//Coupon management
+router.get('/coupons',couponController.loadCouponpage)
+router.get('/addCoupon', couponController.loadAddCouponPage)
+router.post('/addCoupon',couponController.addCoupon)
+router.post('/editCoupon',couponController.editCoupon)
+router.get('/deleteCoupon/:id',couponController.deleteCoupon)
 
 
 

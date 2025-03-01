@@ -1,0 +1,232 @@
+<%- include('../partials/admin/header1') %>
+<style>
+    body {
+        font-family: system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI",sans-serif;
+        margin: 0;
+        padding: 0;
+        background-color: #f8f9fa;
+        overflow: scroll;
+    }
+    .main-content {
+        padding: 30px 5px 10px;
+        margin-left: 250px;
+    }
+
+    .coupon-container {
+        background: white;
+        border-radius: 8px;
+        box-shadow: 0 1px 3px rgba(0,0,0,0.1);
+        padding: 25px 30px;
+        
+        margin-left: -18px;
+        width: 800px;
+    }
+
+    .page-header {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        margin-bottom: 20px;
+    }
+    
+    .back-btn {
+        padding: 10px 20px;
+        background-color: #6c757d;
+        color: white;
+        border: none;
+        border-radius: 4px;
+        cursor: pointer;
+        font-size: 14px;
+        display: flex;
+        align-items: center;
+        gap: 8px;
+        text-decoration: none;
+    }
+
+    .back-btn:hover {
+        background-color: #5a6268;
+    }
+
+    .form-group {
+        margin-bottom: 15px;
+    }
+    .form-group label {
+        display: block;
+        margin-bottom: 5px;
+        font-weight: 500;
+    }
+    .form-group input {
+        width: 100%;
+        padding: 8px;
+        border: 1px solid #dee2e6;
+        border-radius: 4px;
+        font-size: 14px;
+    }
+    .form-actions {
+        display: flex;
+        justify-content: flex-end;
+        gap: 10px;
+        margin-top: 20px;
+    }
+    .btn-cancel {
+        padding: 8px 15px;
+        background-color: #6c757d;
+        color: white;
+        border: none;
+        border-radius: 4px;
+        cursor: pointer;
+        text-decoration: none;
+    }
+    .btn-save {
+        padding: 8px 15px;
+        background-color: #20c997;
+        color: white;
+        border: none;
+        border-radius: 4px;
+        cursor: pointer;
+    }
+    .error-message {
+        color: #dc3545;
+        font-size: 14px;
+        margin-top: 5px;
+        display: flex;
+        align-items: center;
+        gap: 5px;
+    }
+    .alert {
+        padding: 15px;
+        border-radius: 4px;
+        margin-bottom: 20px;
+    }
+    .alert-success {
+        background-color: #d4edda;
+        color: #155724;
+        border: 1px solid #c3e6cb;
+    }
+    .alert-error {
+        background-color: #f8d7da;
+        color: #721c24;
+        border: 1px solid #f5c6cb;
+    }
+</style>
+
+<body>
+    <main class="main-content">
+        <div class="coupon-container">
+            <div class="page-header">
+                <h2>Add New Coupon</h2>
+                <a href="/admin/coupons" class="back-btn">
+                    <i class="fas fa-arrow-left"></i>
+                    Back to Coupons
+                </a>
+            </div>
+            
+            <% if (message && message.text) { %>
+                <div class="alert alert-<%= message.type %>">
+                    <%= message.text %>
+                </div>
+            <% } %>
+            
+            <form id="couponForm" action="/admin/addCoupon" method="POST" novalidate>
+                <div class="form-group">
+                    <label for="code">Coupon Code</label>
+                    <input type="text" id="code" name="code" value="<%= locals.formData ? formData.code : '' %>" required>
+                </div>
+            
+                <div class="form-group">
+                    <label for="discount">Discount Percentage</label>
+                    <input type="number" id="discount" name="discount" min="0" max="100" value="<%= locals.formData ? formData.discount : '' %>" required>
+                </div>
+            
+                <div class="form-group">
+                    <label for="minimumPrice">Minimum Price</label>
+                    <input type="number" id="minimumPrice" name="minimumPrice" min="0" value="<%= locals.formData ? formData.minimumPrice : '' %>" required>
+                </div>
+            
+                <div class="form-group">
+                    <label for="maxRedeem">Max Redeemable</label>
+                    <input type="number" id="maxRedeem" name="maxRedeem" min="1" value="<%= locals.formData ? formData.maxRedeem : '' %>" required>
+                </div>
+            
+                <div class="form-group">
+                    <label for="expiry">Expiry Date</label>
+                    <input type="date" id="expiry" name="expiry" value="<%= locals.formData ? formData.expiry : '' %>" required>
+                </div>
+            
+                <div id="errorMessage" class="error-message"></div>
+            
+                <div class="form-actions">
+                    <a href="/admin/coupons" class="btn-cancel">Cancel</a>
+                    <button type="submit" class="btn-save">Save Coupon</button>
+                </div>
+            </form>
+        </div>
+    </main>
+</body>
+
+<script>
+    // Set minimum date for expiry input to tomorrow
+    const expiryInput = document.getElementById('expiry');
+    const tomorrow = new Date();
+    tomorrow.setDate(tomorrow.getDate() + 1);
+    expiryInput.min = tomorrow.toISOString().split('T')[0];
+    
+    // Client-side validation
+    document.getElementById('couponForm').addEventListener('submit', function(event) {
+        // Clear previous error
+        const errorDiv = document.getElementById('errorMessage');
+        errorDiv.innerHTML = '';
+        
+        // Get form values
+        const code = document.getElementById('code').value.trim();
+        const discount = document.getElementById('discount').value;
+        const minimumPrice = document.getElementById('minimumPrice').value;
+        const maxRedeem = document.getElementById('maxRedeem').value;
+        const expiry = document.getElementById('expiry').value;
+        
+        // Check if any field is empty
+        if (!code || !discount || !minimumPrice || !maxRedeem || !expiry) {
+            event.preventDefault();
+            errorDiv.innerHTML = '<i class="fas fa-exclamation-circle"></i> All fields are required';
+            return false;
+        }
+        
+        // Validate discount
+        const discountNum = Number(discount);
+        if (isNaN(discountNum) || discountNum < 0 || discountNum > 100) {
+            event.preventDefault();
+            errorDiv.innerHTML = '<i class="fas fa-exclamation-circle"></i> Discount must be between 0 and 100';
+            return false;
+        }
+        
+        // Validate minimum price
+        const minPriceNum = Number(minimumPrice);
+        if (isNaN(minPriceNum) || minPriceNum < 0) {
+            event.preventDefault();
+            errorDiv.innerHTML = '<i class="fas fa-exclamation-circle"></i> Minimum price must be a positive number';
+            return false;
+        }
+        
+        // Validate max redeem
+        const maxRedeemNum = Number(maxRedeem);
+        if (isNaN(maxRedeemNum) || maxRedeemNum < 1 || !Number.isInteger(maxRedeemNum)) {
+            event.preventDefault();
+            errorDiv.innerHTML = '<i class="fas fa-exclamation-circle"></i> Max redeemable must be at least 1';
+            return false;
+        }
+        
+        // Validate expiry date
+        const expiryDate = new Date(expiry);
+        const today = new Date();
+        today.setHours(0, 0, 0, 0); // Reset time part for proper comparison
+        
+        if (isNaN(expiryDate.getTime()) || expiryDate <= today) {
+            event.preventDefault();
+            errorDiv.innerHTML = '<i class="fas fa-exclamation-circle"></i> Expiry date must be in the future';
+            return false;
+        }
+        
+        // If all validations pass, the form will be submitted naturally
+        return true;
+    });
+</script>

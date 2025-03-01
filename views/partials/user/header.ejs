@@ -59,6 +59,230 @@
     scroll-behavior: smooth;
 }
  </style>
+
+<style>
+    .loader-container {
+        position: fixed;
+        top: 0;
+        left: 0;
+        width: 100%;
+        height: 100%;
+        background: rgba(255, 255, 255, 0.8);
+        backdrop-filter: blur(8px);
+        display: flex;
+        justify-content: center;
+        align-items: center;
+        z-index: 1000;
+    }
+
+    .tie-loader {
+        position: relative;
+        width: 200px;
+        height: 200px;
+    }
+
+    .modern-tie {
+        position: absolute;
+        left: 50%;
+        top: 50%;
+        transform: translate(-50%, -50%);
+        width: 60px;
+        height: 140px;
+        z-index: 2;
+    }
+
+    .circular-loader {
+        position: absolute;
+        width: 180px;
+        height: 180px;
+        left: 50%;
+        top: 50%;
+        transform: translate(-50%, -50%);
+    }
+
+    .circle-group {
+        position: absolute;
+        width: 100%;
+        height: 100%;
+        animation: groupRotate 3s infinite linear;
+    }
+
+    .orbital-circle {
+        position: absolute;
+        width: 20px;
+        height: 20px;
+        border-radius: 50%;
+        background: #2d3748;
+        opacity: 0.2;
+    }
+
+    .orbital-circle:nth-child(1) {
+        top: 0;
+        left: 50%;
+        transform: translateX(-50%);
+        animation: pulseSize 1s infinite alternate;
+    }
+
+    .orbital-circle:nth-child(2) {
+        top: 50%;
+        right: 0;
+        transform: translateY(-50%);
+        animation: pulseSize 1s infinite alternate 0.2s;
+    }
+
+    .orbital-circle:nth-child(3) {
+        bottom: 0;
+        left: 50%;
+        transform: translateX(-50%);
+        animation: pulseSize 1s infinite alternate 0.4s;
+    }
+
+    .orbital-circle:nth-child(4) {
+        top: 50%;
+        left: 0;
+        transform: translateY(-50%);
+        animation: pulseSize 1s infinite alternate 0.6s;
+    }
+
+    .dotted-circle {
+        position: absolute;
+        width: 100%;
+        height: 100%;
+        border: 2px dashed #2d3748;
+        border-radius: 50%;
+        opacity: 0.3;
+        animation: rotateReverse 8s infinite linear;
+    }
+
+    .progress-ring {
+        position: absolute;
+        width: 90%;
+        height: 90%;
+        top: 5%;
+        left: 5%;
+        border: 3px solid transparent;
+        border-top-color: #2d3748;
+        border-left-color: #2d3748;
+        border-radius: 50%;
+        animation: rotate 2s infinite ease-in-out;
+    }
+
+    @keyframes groupRotate {
+        0% { transform: rotate(0deg); }
+        100% { transform: rotate(360deg); }
+    }
+
+    @keyframes rotateReverse {
+        0% { transform: rotate(360deg); }
+        100% { transform: rotate(0deg); }
+    }
+
+    @keyframes pulseSize {
+        0% { transform: scale(0.8); opacity: 0.1; }
+        100% { transform: scale(1.2); opacity: 0.3; }
+    }
+
+    @keyframes rotate {
+        0% { transform: rotate(0deg); }
+        100% { transform: rotate(360deg); }
+    }
+
+    .tie-top {
+        position: absolute;
+        top: 0;
+        left: 50%;
+        transform: translateX(-50%);
+        width: 40px;
+        height: 20px;
+        background: #2d3748;
+        border-radius: 4px;
+        animation: topPulse 1s infinite;
+    }
+
+    .tie-knot {
+        position: absolute;
+        top: 20px;
+        left: 50%;
+        transform: translateX(-50%);
+        width: 30px;
+        height: 30px;
+        background: #2d3748;
+        clip-path: polygon(0 0, 100% 0, 50% 100%);
+        animation: knotRotate 2s infinite ease-in-out;
+    }
+
+    .tie-body {
+        position: absolute;
+        top: 45px;
+        left: 50%;
+        transform: translateX(-50%);
+        width: 60px;
+        height: 95px;
+        background: #DE3E7E;
+        clip-path: polygon(20% 0, 80% 0, 100% 30%, 100% 100%, 50% 85%, 0 100%, 0 30%);
+        animation: bodyWave 1.5s infinite ease-in-out;
+    }
+
+    .brand-text {
+        position: absolute;
+        width: 100%;
+        text-align: center;
+        bottom: -40px;
+        color: #DE3E7E;
+        font-family: 'Arial', sans-serif;
+        font-size: 24px;
+        font-weight: bold;
+        letter-spacing: 8px;
+        opacity: 0.9;
+        text-transform: uppercase;
+        animation: textFade 2s infinite;
+    }
+
+    @keyframes topPulse {
+        0%, 100% { transform: translateX(-50%) scaleX(1); }
+        50% { transform: translateX(-50%) scaleX(1.2); }
+    }
+
+    @keyframes knotRotate {
+        0%, 100% { transform: translateX(-50%) rotate(0deg); }
+        50% { transform: translateX(-50%) rotate(10deg); }
+    }
+
+    @keyframes bodyWave {
+        0%, 100% { transform: translateX(-50%) skewX(0deg); }
+        25% { transform: translateX(-50%) skewX(3deg); }
+        75% { transform: translateX(-50%) skewX(-3deg); }
+    }
+
+    @keyframes textFade {
+        0%, 100% { opacity: 0.9; }
+        50% { opacity: 0.5; }
+    }
+</style>
+</head>
+<body>
+<!-- Loading Animation -->
+<div class="loader-container" id="attiroLoader">
+    <div class="tie-loader">
+        <div class="circular-loader">
+            <div class="dotted-circle"></div>
+            <div class="progress-ring"></div>
+            <div class="circle-group">
+                <div class="orbital-circle"></div>
+                <div class="orbital-circle"></div>
+                <div class="orbital-circle"></div>
+                <div class="orbital-circle"></div>
+            </div>
+        </div>
+        <div class="modern-tie">
+            <div class="tie-top"></div>
+            <div class="tie-knot"></div>
+            <div class="tie-body"></div>
+        </div>
+        <div class="brand-text">TRENDELLION</div>
+    </div>
+</div>
+
 </head>
 <body>
     <!-- Header -->
@@ -129,3 +353,18 @@
             </button>
         </div>
     </nav>
+    <script>
+        function showLoader() {
+            document.getElementById('attiroLoader').style.display = 'flex';
+        }
+
+        function hideLoader() {
+            document.getElementById('attiroLoader').style.display = 'none';
+        }
+
+        // Example usage: Show loader on page load and hide after 3 seconds
+        window.onload = function() {
+            showLoader();
+            setTimeout(hideLoader, 500); // Hide after 3 seconds
+        };
+    </script>

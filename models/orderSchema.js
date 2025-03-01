@@ -75,6 +75,10 @@ const orderSchema = new Schema({
     type: Number,
     default: 100
   },
+  orderAmount : {
+    type: Number,
+    required: true
+  },
   paymentMethod: {
     type: String,
     enum: ["COD", "ONLINE"],
@@ -90,11 +94,30 @@ const orderSchema = new Schema({
     enum: ["PENDING", "PROCESSING", "Shipped", "DELIVERED", "CANCELLED","RETURN REQUESTED","RETURN CONFIRMED","RETURN REJECTED","RETURNED"],
     default: "PENDING"
   },
+  paymentId: {
+    type: String
+  },
+  couponCode: {
+    type: String,
+    default: ""
+  },
+  couponDiscount: {
+    type: Number,
+    default: 0
+  }, 
   trackingInfo: {
     carrier: String,
     trackingNumber: String
   }
 }, { timestamps: true });
+
+orderSchema.index({ userId: 1, date: -1 });
+
+// Virtual for calculating total amount with discount
+orderSchema.virtual('discountedAmount').get(function() {
+    return this.totalAmount - this.couponDiscount; // Use couponDiscount instead
+});
+
 
 const Order = mongoose.model("Order", orderSchema);
 module.exports = Order;

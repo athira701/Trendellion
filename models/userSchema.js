@@ -35,7 +35,10 @@ const userSchema = new Schema({
     isAdmin : {
         type : Boolean,
         default : false
-    }, 
+    },
+    usedCoupons: [{ 
+        type: String 
+    }]  
 }, { timestamps: true })
 
 const User = mongoose.model("User",userSchema)

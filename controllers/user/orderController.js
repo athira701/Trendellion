@@ -3,9 +3,11 @@ const Cart = require('../../models/cartSchema')
 const User=require('../../models/userSchema')
 const Product = require('../../models/productSchema')
 const Address = require('../../models/addressSchema')
+const Coupon = require('../../models/couponSchema')
 
 const placeOrder = async (req, res) => {
     try {
+        const {addressId,  couponCode} = req.body
         const userId = req.session.user._id;
         console.log("USERID:",userId)
         // Validate user session
@@ -99,18 +101,22 @@ const placeOrder = async (req, res) => {
         // Calculate delivery fee based on cart total
         const deliveryFee = cart.cartTotal > 1000 ? 0 : 100;
         const totalAmount = cart.cartTotal + deliveryFee;
+        const discountAmount = cart.discountAmount
 
         // Create order
         const order = new Order({
             userId,
             orderedItems: orderItems,
             totalPrice: cart.cartTotal,
+            orderAmount: totalAmount - discountAmount,
             totalAmount,
             deliveryFee,
             address: defaultAddress,
             paymentMethod,
+            couponCode: couponCode || null,
             paymentStatus: paymentMethod === 'COD' ? 'PENDING' : 'PAID',
-            orderStatus: 'PENDING'
+            orderStatus: 'PENDING',
+            couponDiscount: discountAmount
         });
 
         await order.save();

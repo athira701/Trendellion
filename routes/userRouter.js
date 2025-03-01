@@ -98,15 +98,15 @@ router.post('/cancelOrder/:orderId',orderController.cancelOrderItem)
 router.post('/createRazorpayOrder',paymentController.createOrder)
 
 //wishlist management
-// router.post('/togglewishlist',wishlistController.toggleWishlistItem)
-// router.get('/getwishlist',wishlistController.getWishlist)
-// router.get('/checkwishlist',wishlistController.checkWishlistItem)
-
 router.post('/addToWishlist',wishlistController.addToWishlist)
 router.post('/removeFromWishlist',wishlistController.removeFromWishlist)
 router.get('/getWishlist',wishlistController.getWishlist)
 //router.get('/checkWishlistStatus',wishlistController.checkWishlistStatus)
 
+//coupon management
+router.post('/applyCoupon',checkoutController.applyCoupon)
+router.get('/availableCoupons',checkoutController.availableCoupons)
+router.post('/removeCoupon',checkoutController.removeCoupon)
 
 
 
