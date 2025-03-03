@@ -116,7 +116,7 @@
     
     #appliedCoupon {
       background-color: var(--success-color);
-      color: white;
+      color: #e75480;
       padding: 2px 8px;
       border-radius:8px;
       font-size: 14px;
@@ -125,13 +125,13 @@
     }
     
     .removeCoupon {
-      background-color: var(--danger-color);
+      background-color: #e75480;
       padding: 5px 10px;
       font-size: 12px;
     }
     
     .removeCoupon:hover {
-      background-color: #d93b58;
+      background-color:#e47395;
     }
     .order-total {
       margin-top: 25px;
@@ -322,7 +322,7 @@
                             <% cartItems.forEach(item => { %>
                                 <div class="d-flex justify-content-between mb-2">
                                     <span><%= item.name %> × <%= item.quantity %></span>
-                                    <span>₹<%= item.total %></span>
+                                    <span>₹<%= item.total.toFixed(2) %></span>
                                 </div>
                             <% }); %>
                         <% } else { %>
@@ -331,10 +331,19 @@
                     
                         <hr>
                         <div class="d-flex justify-content-between mb-2">
-                            <span>Subtotal</span>
-                            <span>₹<%= subtotal.toFixed(2) %></span>
+                            <span>Cart Total</span>
+                            <span>₹<%= cartTotal.toFixed(2) %></span>
                         </div>
-                        
+                        <% if (discountAmount > 0) { %>
+                            <div class="d-flex justify-content-between mb-2">
+                              <span>Discount</span>
+                              <span>-₹<%= discountAmount.toFixed(2) %></span>
+                            </div>
+                            <div class="d-flex justify-content-between mb-2">
+                              <span>Discounted Total</span>
+                              <span>₹<%= discountedTotal.toFixed(2) %></span>
+                            </div>
+                          <% } %>
                        
                     
                         <div class="d-flex justify-content-between mb-2">
@@ -360,8 +369,8 @@
                         </div>
                         <p id="couponMessage"></p>
                         <div class="applied-coupon">
-                          <div>Coupon Applied: <span id="appliedCoupon"></span></div>
-                          <form action="/removeCoupon" method="POST" id="removeCouponForm" style="display: none;">
+                          <div>Coupon Applied: <span id="appliedCoupon"><%= couponCode || '' %></span></div>
+                          <form action="/removeCoupon" method="POST" id="removeCouponForm" style="display: <%= discountAmount > 0 ? 'block' : 'none' %>;">
                             <button type="submit" class="removeCoupon">Remove</button>
                           </form>
                         </div>
@@ -378,9 +387,7 @@
                             </div>
                           </div>
                         </div>
-                        <div class="order-total">
-                            <h3>Total: ₹<span id="totalAmount"><%= (cart.discountedTotal || cart.cartTotal).toFixed(2) %></span></h3>
-                        </div>
+                        
                     
                     <div class="payment-methods mt-3">
                         <div class="form-check mb-2">
@@ -405,7 +412,12 @@
             </div>
         </div>
     </div>
-    
+    <script>
+        const cartItems =  <%- JSON.stringify(cartItems || []) %>;
+        const cartTotal = Number(<%= JSON.stringify(cartTotal) || 0 %>);
+        const deliveryFee = Number(<%= JSON.stringify(deliveryFee) || 100 %>);
+        console.log('cartItems:', cartItems, 'cartTotal:', cartTotal, 'Type:', typeof cartTotal);
+      </script>
     <script>
    function placeOrder() {
     const paymentMethod = document.querySelector('input[name="paymentMethod"]:checked');
@@ -523,7 +535,7 @@
     });
 }
 
-const viewCouponsButton = document.getElementById('viewCouponsButton');
+    const viewCouponsButton = document.getElementById('viewCouponsButton');
     const couponsModal = document.getElementById('couponsModal');
     const closeModal = document.querySelector('.close-modal');
     const couponsContainer = document.getElementById('couponsContainer');
@@ -600,108 +612,190 @@ const viewCouponsButton = document.getElementById('viewCouponsButton');
     const appliedCoupon = document.getElementById('appliedCoupon');
     const removeCouponForm = document.getElementById('removeCouponForm');
 
-    let couponApplied = false; 
+    let couponApplied = false;
 
-    applyCouponButton.addEventListener('click', async function() {
-        const couponCode = couponCodeInput.value.trim();
-        if (!couponCode) {
-            Swal.fire({
-                text: 'Enter a coupon!',
-                icon: 'warning',
-                toast: true,
-                position: 'top-end',
-                showConfirmButton: false,
-                timer: 3000
-            });
-            return;
+    applyCouponButton.addEventListener('click', async function () {
+      const couponCode = couponCodeInput.value.trim();
+      if (!couponCode) {
+        Swal.fire({
+          text: 'Enter a coupon!',
+          icon: 'warning',
+          toast: true,
+          position: 'top-end',
+          showConfirmButton: false,
+          timer: 3000,
+        });
+        return;
+      }
+
+      try {
+        const response = await fetch('/applyCoupon', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ couponCode }),
+        });
+        console.log('Raw response status:', response.status)
+        const responseText = await response.text(); // Get raw text first
+        console.log('Raw response text:', responseText);
+        // Check if response is OK (status 200-299)
+        if (!response.ok) {
+          //const errorText = await response.text(); // Get raw text for debugging
+          throw new Error(`Server responded with status ${response.status}: ${responseText}`);
         }
 
-        try {
-            const response = await fetch('/applyCoupon', {
-                method: 'POST',
-                headers: {
-                    'Content-Type': 'application/json'
-                },
-                body: JSON.stringify({ couponCode })
-            });
+        const result = JSON.parse(responseText); // Parse manually
+        console.log('Parsed apply coupon response:', result);
 
-            const result = await response.json();
-            if (result.success) {
-                appliedCoupon.textContent = couponCode;
-                Swal.fire({
-                    text: result.message || 'Coupon applied successfully!',
-                    icon: 'success',
-                    toast: true,
-                    position: 'top-end',
-                    showConfirmButton: false,
-                    timer: 3000
-                });
-                removeCouponForm.style.display = 'block';
-                document.getElementById('totalAmount').textContent = result.newTotal;
-                couponApplied = true;
-            } else {
-                Swal.fire({
-                    text: result.message || 'Failed to apply coupon',
-                    icon: 'error',
-                    toast: true,
-                    position: 'top-end',
-                    showConfirmButton: false,
-                    timer: 3000
-                });
-            }
-        } catch (error) {
-            console.error('Error applying coupon:', error);
-            Swal.fire({
-                text: 'An error occurred while applying the coupon.',
-                icon: 'error',
-                toast: true,
-                position: 'top-end',
-                showConfirmButton: false,
-                timer: 3000
-            });
-        }
+        if (result.success) {
+          appliedCoupon.textContent = couponCode;
+          Swal.fire({
+            text: result.message || 'Coupon applied successfully!',
+            icon: 'success',
+            toast: true,
+            position: 'top-end',
+            showConfirmButton: false,
+            timer: 3000,
+          });
+          removeCouponForm.style.display = 'block';
 
+          const itemsHtml = Array.isArray(cartItems) && cartItems.length > 0
+          ? cartItems.map(item => `
+              <div class="d-flex justify-content-between mb-2">
+                <span>${item.name} × ${item.quantity}</span>
+                <span>₹${(item.total || 0).toFixed(2)}</span>
+              </div>
+            `).join('')
+          : '<p>Your cart is empty.</p>';
+          const safeCartTotal = Number(cartTotal) || 0;
+          if (isNaN(safeCartTotal)) {
+            console.error('cartTotal is not a valid number:', cartTotal);
+            safeCartTotal = 0;
+          }
+           // Update order summary with new values
+           document.querySelector('.order-summary').innerHTML = `
+             <div class="d-flex justify-content-between mb-2">
+               <span>Products</span>
+               <span>Total</span>
+             </div>
+             ${itemsHtml}
+             <hr>
+             <div class="d-flex justify-content-between mb-2">
+               <span>Cart Total</span>
+               <span>₹${safeCartTotal.toFixed(2)}</span>
+             </div>
+             <div class="d-flex justify-content-between mb-2">
+               <span>Discount</span>
+               <span>-₹${result.discountAmount.toFixed(2)}</span>
+             </div>
+             <div class="d-flex justify-content-between mb-2">
+               <span>Discounted Total</span>
+               <span>₹${result.discountedTotal.toFixed(2)}</span>
+             </div>
+             <div class="d-flex justify-content-between mb-2">
+               <span>Delivery Charge</span>
+               <span>₹${deliveryFee.toFixed(2)}</span>
+             </div>
+             <hr>
+             <div class="d-flex justify-content-between total-row">
+               <span>Total</span>
+               <span>₹${result.totalAmount.toFixed(2)}</span>
+             </div>
+           `;
+        }else {
+           Swal.fire({
+             text: result.message || 'Failed to apply coupon',
+             icon: 'error',
+             toast: true,
+             position: 'top-end',
+             showConfirmButton: false,
+             timer: 3000,
+            });
+          }
+      } catch (error) {
+        console.error('Error applying coupon:', error.message); // Log detailed error
+        Swal.fire({
+          text: `Error applying coupon: ${error.message}`,
+          icon: 'error',
+          toast: true,
+          position: 'top-end',
+          showConfirmButton: false,
+          timer: 3000,
+        });
+      }
     });
     // Handle remove coupon
-    removeCouponForm.addEventListener('submit', async function(e) {
-        e.preventDefault();
-        try {
-            const response = await fetch('/removeCoupon', {
-                method: 'POST',
-                headers: {
-                    'Content-Type': 'application/json'
-                }
-            });
+    removeCouponForm.addEventListener('submit', async function (e) {
+      e.preventDefault();
+      try {
+         const response = await fetch('/removeCoupon', {
+          method: 'POST',
+          headers: {
+          'Content-Type': 'application/json',
+         },
+         });
 
-            const result = await response.json();
-            if (result.success) {
-                appliedCoupon.textContent = ''; // Clear applied coupon
-                Swal.fire({
-                    text: 'Coupon removed successfully!',
-                icon: 'success',
-                toast: true,
-                position: 'top-end',
-                showConfirmButton: false,
-                timer: 3000
-                });
-                removeCouponForm.style.display = 'none'; 
-                document.getElementById('totalAmount').textContent = result.newTotal;
-                couponApplied = false; 
-            } else {
-                Swal.fire({
-                    icon: 'error',
-                    title: 'Error',
-                    text: result.message, 
-                });
-            }
-        } catch (error) {
-            console.error('Error removing coupon:', error);
-            Swal.fire({
-                icon: 'error',
-                title: 'Error',
-                text: 'An error occurred while removing the coupon.',
-            });
+         if (!response.ok) {
+           const errorText = await response.text();
+           throw new Error(`Server responded with status ${response.status}: ${errorText}`);
+         }
+
+        const result = await response.json();
+
+        if (result.success) {
+          appliedCoupon.textContent = ''; // Clear applied coupon
+          Swal.fire({
+            text: result.message || 'Coupon removed successfully!',
+            icon: 'success',
+            toast: true,
+            position: 'top-end',
+            showConfirmButton: false,
+            timer: 3000,
+          });
+          removeCouponForm.style.display = 'none';
+          couponApplied = false;
+    
+          // Update order summary to reflect removal
+          document.querySelector('.order-summary').innerHTML = `
+            <div class="d-flex justify-content-between mb-2">
+              <span>Products</span>
+              <span>Total</span>
+            </div>
+            ${cartItems.map(item => `
+              <div class="d-flex justify-content-between mb-2">
+                <span>${item.name} × ${item.quantity}</span>
+                <span>₹${item.total.toFixed(2)}</span>
+              </div>
+            `).join('')}
+            <hr>
+            <div class="d-flex justify-content-between mb-2">
+              <span>Cart Total</span>
+              <span>₹${result.cartTotal.toFixed(2)}</span>
+            </div>
+            <div class="d-flex justify-content-between mb-2">
+              <span>Delivery Charge</span>
+              <span>₹${deliveryFee.toFixed(2)}</span>
+            </div>
+            <hr>
+            <div class="d-flex justify-content-between total-row">
+              <span>Total</span>
+              <span>₹${result.totalAmount.toFixed(2)}</span>
+            </div>
+          `;
+        } else {
+          Swal.fire({
+            icon: 'error',
+            title: 'Error',
+            text: result.message || 'Failed to remove coupon',
+          });
         }
+      } catch (error) {
+        console.error('Error removing coupon:', error.message);
+        Swal.fire({
+          icon: 'error',
+          title: 'Error',
+          text: `Error removing coupon: ${error.message}`,
+        });
+      }
     });
 
     </script>

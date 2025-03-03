@@ -7,7 +7,7 @@ const Coupon = require('../../models/couponSchema')
 
 const placeOrder = async (req, res) => {
     try {
-        const {addressId,  couponCode} = req.body
+        const {addressId,  couponCode, paymentMethod } = req.body
         const userId = req.session.user._id;
         console.log("USERID:",userId)
         // Validate user session
@@ -32,116 +32,75 @@ const placeOrder = async (req, res) => {
         }
 
         // Validate payment method
-        const paymentMethod = req.body.paymentMethod?.toUpperCase();
-        if (!paymentMethod || !['COD', 'ONLINE'].includes(paymentMethod)) {
-            return res.status(400).json({ success: false, message: "Please select a valid payment method" });
-        }
+       
+        if (!['COD', 'ONLINE'].includes(paymentMethod?.toUpperCase())) {
+            return res.status(400).json({ success: false, message: "Invalid payment method" });
+          }
 
         // Calculate totals and prepare order items
         const orderItems = [];
         for (const item of cart.item) {
-            const product = await Product.findById(item.productId);
-            if (!product || product.stock < item.quantity) {
-                return res.status(400).json({ success: false, message: `Insufficient stock for ${item.name}` });
-            }
-
-            const orderedItem=cart.item.map((item)=>({
-                productId:item.productId._id,
-                quantity:item.quantity,
-                size:item.size,
-                productPrice:item.price,
-                totalAmount:item.price*item.quantity
-            }))
-
-
-
-
-            for(let item of orderedItem ){
-                const {productId,quantity,size}=item
-                console.log('items',item)
-                console.log(size)
-                const product=await Product.findById(productId)
-
-                console.log('profuct finded',product)
-           
-
-            if(product){
-                const sizeIndex = product.stock.findIndex((s)=>s.size===size);
-                console.log('dfijd',sizeIndex)
-
-            
-
-                    
-                
-            
-        
-            product.stock[sizeIndex].quantity-=quantity;
-            console.log('productstock',product.stock[sizeIndex].quantity)
-            product.totalStock-=quantity
-            console.log('jfisjdfsdjhdfhdhfjdhdf', product.totalStock)
-            await product.save();
+          const product = item.productId;
+          const sizeIndex = product.stock.findIndex(s => s.size === item.size);
+          if (product.stock[sizeIndex].quantity < item.quantity) {
+            return res.status(400).json({ success: false, message: `Insufficient stock for ${item.name}` });
+          }
     
-            
+          product.stock[sizeIndex].quantity -= item.quantity;
+          product.totalStock -= item.quantity;
+          await product.save();
+    
+          orderItems.push({
+            product: product._id,
+            quantity: item.quantity,
+            size: item.size,
+            price: item.price
+          });
         }
-    }
-          
-          
-            
-            console.log(product.stock)
-           
-
-            orderItems.push({
-                product: item.productId._id,
-                quantity: item.quantity,
-                price: item.price,
-                size: item.size
-            });
-        };
-
-        // Calculate delivery fee based on cart total
-        const deliveryFee = cart.cartTotal > 1000 ? 0 : 100;
-        const totalAmount = cart.cartTotal + deliveryFee;
-        const discountAmount = cart.discountAmount
-
-        // Create order
+    
+        const cartTotal = cart.cartTotal;
+        const discountAmount = cart.discountAmount || 0;
+        const discountedTotal = cart.discountedTotal;
+        const deliveryFee = cartTotal > 1000 ? 0 : 100;
+        const totalAmount = discountedTotal + deliveryFee;
+    
         const order = new Order({
-            userId,
-            orderedItems: orderItems,
-            totalPrice: cart.cartTotal,
-            orderAmount: totalAmount - discountAmount,
-            totalAmount,
-            deliveryFee,
-            address: defaultAddress,
-            paymentMethod,
-            couponCode: couponCode || null,
-            paymentStatus: paymentMethod === 'COD' ? 'PENDING' : 'PAID',
-            orderStatus: 'PENDING',
-            couponDiscount: discountAmount
+          userId,
+          orderedItems: orderItems,
+          cartTotal,
+          discountAmount,
+          discountedTotal,
+          deliveryFee,
+          totalAmount,
+          address: defaultAddress,
+          paymentMethod: paymentMethod.toUpperCase(),
+          paymentStatus: paymentMethod === 'COD' ? 'PENDING' : 'PAID',
+          orderStatus: 'PENDING',
+          couponCode: couponCode || ""
         });
-
+    
         await order.save();
-
-        // Clear cart
+    
+        // Reset cart completely to avoid negative values
         cart.item = [];
         cart.cartTotal = 0;
+        cart.discountAmount = 0;
+        cart.discountedTotal = 0;
+        cart.appliedCoupon = null;
         await cart.save();
 
-        // Redirect based on payment method
-        if (paymentMethod === 'ONLINE') {
-            req.session.orderId = order.orderId;
-            // Implement your payment gateway integration here
-            res.json({ success: true, message: "Redirecting to payment gateway",orderId: order.orderId
-            });
-        } else {
-            req.session.orderId = order.orderId;
-            res.json({ success: true, message: "Order placed successfully",orderId: order.orderId
-            });
-        }
-
-    } catch (error) {
+        req.session.couponApplied = false;
+    
+        req.session.orderId = order.orderId;
+        res.json({
+          success: true,
+          message: paymentMethod === 'ONLINE' ? "Redirecting to payment gateway" : "Order placed successfully",
+          orderId: order.orderId
+        });
+      } catch (error) {
         console.log("Order placement error:", error);
-        res.status(500).json({ success: false, message: error.message || "Failed to place order"});
-    }
+        res.status(500).json({ success: false, message: error.message || "Failed to place order" });
+      }
 };
 
 const orderPlacedpage = async (req, res) => {

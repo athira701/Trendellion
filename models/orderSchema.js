@@ -57,17 +57,17 @@ const orderSchema = new Schema({
     },
     
   ],
-  totalPrice: {
+  cartTotal: {
     type: Number,
     required: true,
     min: 0,
   },
-  discount: {
+  discountAmount: {
     type: Number,
     default: 0,
     
   },
-  totalAmount: {
+  discountedTotal: {
     type: Number,
     required: true
   },
@@ -75,7 +75,7 @@ const orderSchema = new Schema({
     type: Number,
     default: 100
   },
-  orderAmount : {
+  totalAmount : {
     type: Number,
     required: true
   },
@@ -111,12 +111,12 @@ const orderSchema = new Schema({
   }
 }, { timestamps: true });
 
-orderSchema.index({ userId: 1, date: -1 });
+// orderSchema.index({ userId: 1, date: -1 });
 
-// Virtual for calculating total amount with discount
-orderSchema.virtual('discountedAmount').get(function() {
-    return this.totalAmount - this.couponDiscount; // Use couponDiscount instead
-});
+// // Virtual for calculating total amount with discount
+// orderSchema.virtual('discountedAmount').get(function() {
+//     return this.totalAmount - this.couponDiscount; // Use couponDiscount instead
+// });
 
 
 const Order = mongoose.model("Order", orderSchema);
