@@ -1,0 +1,532 @@
+<%-include('../../views/partials/user/header')%>
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>My Wallet - Trendellion</title>
+   
+    <style>
+
+:root {
+    --form-gradient: linear-gradient(135deg, #EC4899, #D946EF);
+    --input-bg: #FDF2F8;
+    --label-color: #DB2777;
+    --input-focus: #FBCFE8;
+    --transition: all 0.3s ease;
+}
+
+.content-section {
+    background: rgb(255, 255, 255);
+    border-radius: 8px;
+    padding: 1.2rem;
+    box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1);
+    margin-bottom: 1rem;
+    border-top: 5px solid var(--label-color);
+    margin-top: 0; /* Remove negative margin to avoid overlap */
+}
+
+body {
+    font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+    background-color: #ffffff;
+    color: #333;
+}
+
+.wallet-container {
+    max-width: 1000px;
+    margin: 40px auto;
+    padding: 0 20px;
+    margin-left: 0; /* Remove negative margin to align properly */
+}
+
+.wallet-card {
+    background-color: #fff;
+    border-radius: 12px;
+    box-shadow: 0 2px 10px rgba(0, 0, 0, 0.1);
+    padding: 24px;
+    margin-bottom: 24px;
+}
+
+.wallet-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 20px;
+    padding-top: 10px; /* Add some padding to separate from the top */
+}
+
+.wallet-title {
+    font-size: 24px;
+    font-weight: 600;
+    color: #BE185D;
+}
+
+.wallet-icon {
+    width: 32px;
+    height: 32px;
+    color: #EC4899;
+}
+
+.wallet-details {
+    display: flex;
+    flex-direction: column;
+    gap: 1rem;
+    width: 100%; /* Ensure it takes full width */
+}
+
+.balance-container {
+    background-color: #FDF2F8;
+    border-radius: 8px;
+    padding: 24px;
+    margin-top: 10px; /* Add margin to separate from header */
+}
+
+.balance-label {
+    font-size: 14px;
+    color: #9D174D;
+    margin-bottom: 4px;
+}
+
+.balance-amount {
+    font-size: 32px;
+    font-weight: bold;
+    color: #DB2777;
+}
+
+.transactions-container {
+    background-color: #fff;
+    border-radius: 12px;
+    box-shadow: 0 2px 10px rgba(0, 0, 0, 0.1);
+    padding: 24px;
+    margin-top: 20px; /* Add margin to separate from balance */
+}
+
+.transactions-title {
+    font-size: 20px;
+    font-weight: 600;
+    color: #BE185D;
+    margin-bottom: 20px;
+}
+
+.transaction-item {
+    border-bottom: 1px solid #FBCFE8;
+    padding: 16px 0;
+}
+
+.transaction-item:last-child {
+    border-bottom: none;
+}
+
+.transaction-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 8px;
+}
+
+.transaction-info {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+}
+
+.transaction-icon {
+    width: 40px;
+    height: 40px;
+    border-radius: 50%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+}
+
+.refund-icon {
+    background-color: #FCE7F3;
+    color: #DB2777;
+}
+
+.transaction-details h3 {
+    font-size: 16px;
+    color: #9D174D;
+    margin-bottom: 4px;
+}
+
+.order-id {
+    font-size: 14px;
+    color: #BE185D;
+}
+
+.transaction-amount {
+    text-align: right;
+}
+
+.amount {
+    font-size: 16px;
+    font-weight: 600;
+    color: #DB2777;
+    margin-bottom: 4px;
+}
+
+.transaction-date {
+    font-size: 14px;
+    color: #9D174D;
+}
+
+.status-badge {
+    display: inline-block;
+    padding: 4px 12px;
+    border-radius: 9999px;
+    font-size: 14px;
+    font-weight: 500;
+    margin-top: 8px;
+}
+
+.status-completed {
+    background-color: #FCE7F3;
+    color: #9D174D;
+}
+
+.status-pending {
+    background-color: #FDF2F8;
+    color: #BE185D;
+}
+
+.no-transactions {
+    text-align: center;
+    color: #BE185D;
+}
+
+.create-wallet {
+    margin-top: 20px;
+    text-align: center;
+}
+
+.create-wallet button {
+    padding: 10px 20px;
+    font-size: 16px;
+    background: linear-gradient(135deg, #EC4899, #DB2777);
+    color: white;
+    border: none;
+    border-radius: 5px;
+    cursor: pointer;
+    transition: all 0.3s ease;
+}
+
+.create-wallet button:hover {
+    background: linear-gradient(135deg, #DB2777, #9D174D);
+    transform: scale(1.05);
+}
+
+.create-wallet button:active {
+    transform: scale(0.95);
+}
+
+@media (max-width: 768px) {
+    .wallet-card,
+    .transactions-container {
+        padding: 16px;
+    }
+
+    .balance-amount {
+        font-size: 24px;
+    }
+
+    .transaction-header {
+        flex-direction: column;
+        align-items: flex-start;
+        gap: 8px;
+    }
+
+    .transaction-amount {
+        text-align: left;
+    }
+}
+
+h2 {
+    font-size: 1.2rem;
+    margin-bottom: 1rem;
+    color: #BE185D;
+}
+
+.pagination {
+    display: flex;
+    justify-content: center;
+    gap: 0.5rem;
+    margin-top: 1.5rem;
+}
+
+.page-link {
+    padding: 0.4rem 0.8rem;
+    border: 1px solid #FBCFE8;
+    border-radius: 4px;
+    color: #BE185D;
+    text-decoration: none;
+    font-size: 0.9rem;
+    transition: all 0.3s ease;
+}
+
+.page-link:hover {
+    background-color: #FDF2F8;
+}
+
+.page-link.active {
+    background-color: #DB2777;
+    color: white;
+    border-color: #DB2777;
+}
+
+.add-money {
+    display: flex;
+    justify-content: flex-end; /* Align to the right */
+    margin-top: 10px; /* Adjust margin to avoid overlap */
+}
+
+#add-money-btn {
+    background: linear-gradient(135deg, #EC4899, #DB2777);
+    color: white;
+    font-size: 13px;
+    font-weight: 600;
+    padding: 6px 9px;
+    border: none;
+    border-radius: 8px;
+    cursor: pointer;
+    transition: all 0.3s ease-in-out;
+    display: flex;
+    align-items: center;
+    gap: 8px;
+}
+
+#add-money-btn:hover {
+    background: linear-gradient(135deg, #DB2777, #9D174D);
+    transform: scale(1.05);
+}
+
+#add-money-btn:active {
+    transform: scale(0.95);
+}
+    </style>
+</head>
+<body>
+    
+
+<div class="page-container">
+    <main class="main-content">
+        <div id="wallet-section" class="content-section">
+            <h2>My Wallet</h2>
+            <div class="wallet-details">
+                <div class="add-money">
+                    <button id="add-money-btn" onclick="addMoney()">💰 Add Money</button>
+                </div>
+                <div class="balance-container">
+                    <p class="balance-label">Current Balance</p>
+                    <p class="balance-amount">₹<%= walletBalance.toFixed(2) %></p>
+                </div>
+                <% if (walletBalance === 0 && (!transactions || transactions.length === 0)) { %>
+                    <div class="create-wallet">
+                        <button id="create-wallet-btn" onclick="createWallet()">Create Wallet</button>
+                    </div>
+                <% } %>
+            </div>
+
+
+              
+                <div class="transactions-container">
+                    <h3 class="transactions-title">Recent Transactions</h3>
+                    <% if (transactions && transactions.length > 0) { %>
+                        <% transactions.forEach(function(transaction) { %>
+                            <div class="transaction-item">
+                                <div class="transaction-header">
+                                    <div class="transaction-info">
+                                        <div class="transaction-icon refund-icon">
+                                            <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                                                <path d="M9 14L4 9l5-5"></path>
+                                                <path d="M20 20v-7a4 4 0 0 0-4-4H4"></path>
+                                            </svg>
+                                        </div>
+                                        <div class="transaction-details">
+                                            <h3><%= transaction.transactionsMethod %></h3>
+                                            <p class="order-id">Order ID: <%= transaction.orderId||transaction._id %></p>
+                                        </div>
+                                    </div>
+                                    <div class="transaction-amount">
+                                        <p class="amount">₹<%= transaction.amount.toFixed(2) %></p>
+                                        <p class="transaction-date"><%= transaction.date.toLocaleDateString() %></p>
+                                    </div>
+                                </div>
+                            </div>
+                        <% }); %>
+                    <% } else { %>
+                        <p class="no-transactions">No transactions found</p>
+                    <% } %>
+                </div>
+
+              
+                <% if (totalPages > 1) { %>
+                    <div class="pagination">
+                        <% if (currentPage > 1) { %>
+                            <a href="?page=<%= currentPage - 1 %>" class="page-link">← Previous</a>
+                        <% } %>
+                        
+                        <% for (let i = 1; i <= totalPages; i++) { %>
+                            <a href="?page=<%= i %>" 
+                               class="page-link <%= currentPage === i ? 'active' : '' %>">
+                                <%= i %>
+                            </a>
+                        <% } %>
+                        
+                        <% if (currentPage < totalPages) { %>
+                            <a href="?page=<%= currentPage + 1 %>" class="page-link">Next →</a>
+                        <% } %>
+                    </div>
+                <% } %>
+            </div>
+        </main>
+    </div>
+
+    <%-include('../../views/partials/user/footer')%>
+
+    <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
+    <script src="https://checkout.razorpay.com/v1/checkout.js"></script>
+
+
+    <script>
+       async function addMoney() {
+        const { value: amount } = await Swal.fire({
+            title: 'Enter Amount',
+            input: 'number',
+            inputPlaceholder: 'Enter amount to add',
+            showCancelButton: true,
+            confirmButtonText: 'Add Money',
+            inputValidator: (value) => {
+                if (!value || value <= 0) {
+                    return 'Please enter a valid amount!';
+                }
+            }
+        });
+
+        if (!amount) return;
+
+        try {
+            const response = await fetch('/addMoney', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ amount: parseFloat(amount) }),
+                credentials: 'same-origin',
+            });
+
+            const result = await response.json();
+
+            if (!response.ok) {
+                throw new Error(result.message || 'Failed to initiate payment.');
+            }
+
+            const options = {
+                key: 'rzp_test_LNdBmP64vR1Tz8',
+                amount: result.order.amount,
+                currency: result.order.currency,
+                order_id: result.order.id,
+                name: 'Trendellion',
+                description: 'Add Money to Wallet',
+                handler: async function (paymentResponse) {
+                    await verifyPayment(paymentResponse, amount);
+                },
+                prefill: {
+                    name: '<%= user?.name %>',
+                    email: '<%= user?.email %>',
+                },
+                theme: { color: '#3399cc' },
+            };
+    
+            const rzp = new Razorpay(options);
+            rzp.open();
+        } catch (error) {
+            Swal.fire({
+                icon: 'error',
+                title: 'Error',
+                text: error.message,
+                timer: 3000,
+                showConfirmButton: true,
+            });
+        }
+     }
+
+ async function verifyPayment(paymentResponse, amount) {
+    try {
+        const response = await fetch('/verify-wallet-payment', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({
+                razorpay_payment_id: paymentResponse.razorpay_payment_id,
+                razorpay_order_id: paymentResponse.razorpay_order_id,
+                razorpay_signature: paymentResponse.razorpay_signature,
+                amount: amount,
+            }),
+            credentials: 'same-origin',
+        });
+
+        const result = await response.json();
+
+        if (!response.ok) {
+            throw new Error(result.message || 'Payment verification failed.');
+        }
+
+        Swal.fire({
+            icon: 'success',
+            title: 'Payment Successful!',
+            text: `₹${amount} added to your wallet!`,
+            timer: 3000,
+            showConfirmButton: true,
+        });
+
+        setTimeout(() => {
+            location.reload();
+        }, 3000);
+    } catch (error) {
+        Swal.fire({
+            icon: 'error',
+            title: 'Error',
+            text: error.message,
+            timer: 3000,
+            showConfirmButton: true,
+        });
+    }
+}
+
+async function createWallet() {
+    try {
+        const response = await fetch('/createWallet', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            credentials: 'same-origin',
+        });
+
+        const result = await response.json();
+
+        if (!response.ok) {
+            throw new Error(result.message || 'Failed to create wallet.');
+        }
+
+        Swal.fire({
+            icon: 'success',
+            title: 'Wallet Created!',
+            text: 'Your wallet has been created with a balance of ₹0.',
+            timer: 3000,
+            showConfirmButton: true,
+        });
+
+        
+        location.reload();
+    } catch (error) {
+        Swal.fire({
+            icon: 'error',
+            title: 'Error',
+            text: error.message,
+            timer: 3000,
+            showConfirmButton: true,
+        });
+    }
+}
+
+    </script>
+    
+</body>
+</html>

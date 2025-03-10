@@ -39,10 +39,7 @@ const productSchema = new Schema({
         totalStock:{
             type:Number,
             required:true
-        },
-       
-     
-      
+        },    
         productImage: {
              type: [String],
              required: true 

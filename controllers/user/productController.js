@@ -10,7 +10,7 @@ const getProductDetails = async (req,res) => {
     try {
         const { id } = req.params;
         const product = await Product.findById(id);
-        
+     
         const relatedProducts = await Product.find({ category: product.category, isBlocked: false });
         console.log("Total Stock:", product.totalStock);
         

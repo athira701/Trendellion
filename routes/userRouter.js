@@ -11,6 +11,7 @@ const checkoutController = require('../controllers/user/checkoutController')
 const orderController = require('../controllers/user/orderController')
 const paymentController = require('../controllers/user/paymentController')
 const wishlistController = require('../controllers/user/wishlistController')
+const walletController = require('../controllers/user/walletController')
 const passport = require('passport')
 const { isAuthenticated, isUserAuthenticated,checkUserBlocked, addressMiddleware } = require('../middlewares/auth')
 
@@ -27,7 +28,7 @@ router.get('/verify-otp',userController.loadOtp)
 router.post("/signup",userController.signup)
 router.post("/verify-otp",userController.verifyOtp)
 router.post("/resendotp",userController.resendOtp)
-//forgot Password setup
+//forgot&reset Password setup
 router.get("/forgotPassword",userController.forgotPassword)
 router.post("/forgotPassword",userController.forgot)
 router.get('/forgotOtp',userController.loadForgotOtpPage)
@@ -93,6 +94,7 @@ router.get('/placedOrder',orderController.orderPlacedpage)
 router.get('/orders',orderController.getOrderPage)
 router.get('/orders/:orderId',orderController.getOrderDetails)
 router.post('/cancelOrder/:orderId',orderController.cancelOrderItem)
+router.post('/returnOrder/:orderId',orderController.returnOrderItem)
 
 //payment through Razorpay
 router.post('/createRazorpayOrder',paymentController.createOrder)
@@ -108,6 +110,13 @@ router.post('/applyCoupon',checkoutController.applyCoupon)
 router.get('/availableCoupons',checkoutController.availableCoupons)
 router.post('/removeCoupon',checkoutController.removeCoupon)
 
+//wallet managegment
+router.get('/wallets',walletController.getWalletPage)
+router.post('/createWallet',walletController.createWallet);
+router.post('/addMoney',walletController.addMoney)
+router.post('/verify-wallet-payment',walletController.verifyPayment)
+router.post('/process-wallet-payment', walletController.processWalletPayment)
+//router.get('/walletDetails', walletController.getWalletDetails)
 
 
 

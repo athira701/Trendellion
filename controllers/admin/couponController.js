@@ -117,7 +117,7 @@ const addCoupon = async (req,res) => {
         //     coupon:updatedCoupon
         // });
 
-        return res.redirect('/admin/coupons?message=Coupon created successfully');
+        return res.redirect('/admin/coupons?message=Coupon created successfully&type=success');
     } catch (error) {
         console.log('error while creating coupons',error)   
     }

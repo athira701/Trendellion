@@ -60,6 +60,33 @@
         cursor: pointer;
         font-size: 20px;
       }
+      .request-pending-order-banner{
+        background-color: #f8d7da;
+        color: #f92e00;
+        padding: 12px 20px;
+        margin-bottom: 20px;
+        border-radius: 4px;
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+      }
+
+      .request-pending-order-banner span{
+        font-weight: bold;
+      }
+      .request-approved-order-banner{
+        background-color: #f8d7da;
+        color: #14761c;
+        padding: 12px 20px;
+        margin-bottom: 20px;
+        border-radius: 4px;
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+      }
+      .request-approved-order-banner{
+        font-weight: bold;
+      }
 
       .order-header {
         display: flex;
@@ -165,7 +192,27 @@
         cursor: pointer;
       }
 
+      .return-btn {
+        padding: 8px 20px;
+        border: 1px solid #DE3E7E;
+        color: #DE3E7E;
+        background: white;
+        border-radius: 4px;
+        cursor: pointer;
+      }
+
       .cancelled-btn {
+        padding: 8px 20px;
+        border: 1px solid #ccc;
+        color: #999;
+        background: #f8f9fa;
+        border-radius: 4px;
+        cursor: not-allowed;
+      }
+
+      .return-pending-btn,
+      .returned-btn,
+      .return-rejected-btn {
         padding: 8px 20px;
         border: 1px solid #ccc;
         color: #999;
@@ -272,6 +319,113 @@
         font-size: 12px;
       }
 
+      /* Return Modal Styles */
+      .return-modal {
+        display: none;
+        position: fixed;
+        top: 0;
+        left: 0;
+        width: 100%;
+        height: 100%;
+        background-color: rgba(0, 0, 0, 0.5);
+        z-index: 1000;
+        justify-content: center;
+        align-items: center;
+      }
+
+      .return-modal-content {
+        background-color: white;
+        width: 90%;
+        max-width: 500px;
+        border-radius: 8px;
+        box-shadow: 0 4px 20px rgba(0, 0, 0, 0.15);
+        overflow: hidden;
+      }
+
+      .return-modal-header {
+        background-color: #DE3E7E;
+        color: white;
+        padding: 15px 20px;
+        font-size: 18px;
+        font-weight: bold;
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+      }
+
+      .return-modal-close {
+        color: white;
+        background: none;
+        border: none;
+        font-size: 24px;
+        cursor: pointer;
+      }
+
+      .return-modal-body {
+        padding: 20px;
+      }
+
+      .return-form-group {
+        margin-bottom: 15px;
+        text-align: left;
+      }
+
+      .return-form-group label {
+        display: block;
+        margin-bottom: 5px;
+        font-weight: bold;
+        color: #333;
+      }
+
+      .return-form-group input[type="radio"] {
+        margin-right: 10px;
+      }
+
+      .return-form-group .radio-option {
+        margin-bottom: 10px;
+      }
+
+      .return-form-group textarea {
+        width: 100%;
+        padding: 10px;
+        border: 1px solid #ddd;
+        border-radius: 4px;
+        min-height: 100px;
+        resize: vertical;
+      }
+
+      .return-form-buttons {
+        display: flex;
+        justify-content: space-between;
+        margin-top: 20px;
+      }
+
+      .return-form-buttons button {
+        padding: 10px 20px;
+        border-radius: 4px;
+        cursor: pointer;
+        font-weight: bold;
+      }
+
+      .return-cancel-btn {
+        background-color: #f1f1f1;
+        border: 1px solid #ddd;
+        color: #333;
+      }
+
+      .return-submit-btn {
+        background-color: #DE3E7E;
+        border: 1px solid #DE3E7E;
+        color: white;
+      }
+
+      .error-message {
+        color: #d9534f;
+        font-size: 14px;
+        margin-top: 5px;
+        display: none;
+      }
+
       @media (max-width: 768px) {
         .timeline-label .status {
           font-size: 12px;
@@ -295,9 +449,16 @@
           <span>YOUR ORDER HAS BEEN CANCELLED</span>
           <button class="close-btn" onclick="closeBanner()">&times;</button>
         </div>
+      <% } else if (order.orderStatus === 'RETURN REQUESTED') { %>
+        <div class="request-pending-order-banner">YOUR REQUEST HAS BEEN PENDING</div>
+      <% } else if (order.orderStatus === 'RETURN CONFIRMED') { %>
+        <div class="request-approved-order-banner">YOUR RETURN REQUEST APPROVED SUCCESSFULLY</div>
+      <% } else if (order.orderStatus === 'RETURN REJECTED') { %>
+        <div class="cancelled-order-banner">YOUR REQUEST REJECTED</div>
       <% } else { %>
         <div class="status-message">SUCCESSFULLY PLACED THE ORDER</div>
       <% } %>
+        
 
       <div class="order-header">
         <div class="delivery-address">
@@ -307,18 +468,62 @@
             <p><%= order.address %></p>
             <p>Phone number <%= order.phone %></p>
           </div>
-        </div>
+        </div>  
 
         <div class="order-actions">
           <div class="order-id">
             <strong>Order Id:</strong> <%= order.orderId %>
           </div>
-          <% if (order.orderStatus === 'CANCELLED') { %>
-            <div style="margin-top: 10px; color: #721c24;">
-              <strong>Order Status:</strong> Cancelled
+          <% if (order.orderStatus.toUpperCase() === 'PENDING') { %>
+            <div style="margin-top: 10px; color: #856404;">
+                <strong>Order Status:</strong> Pending
             </div>
-          <% } %>
+        <% } else if (order.orderStatus.toUpperCase() === 'PROCESSING') { %>
+            <div style="margin-top: 10px; color: #0c5460;">
+                <strong>Order Status:</strong> Processing
+            </div>
+        <% } else if (order.orderStatus.toUpperCase() === 'SHIPPED') { %>
+            <div style="margin-top: 10px; color: #004085;">
+                <strong>Order Status:</strong> Shipped
+            </div>
+        <% } else if (order.orderStatus.toUpperCase() === 'DELIVERED') { %>
+            <div style="margin-top: 10px; color: #155724;">
+                <strong>Order Status:</strong> Delivered
+            </div>
+        <% } else if (order.orderStatus.toUpperCase() === 'CANCELLED') { %>
+            <div style="margin-top: 10px; color: #721c24;">
+                <strong>Order Status:</strong> Cancelled
+            </div>
+        <% } else if (order.orderStatus.toUpperCase() === 'RETURN REQUESTED') { %>
+            <div style="margin-top: 10px; color: #856404;">
+                <strong>Order Status:</strong> Note: Your refund amount is pending.Please allow 5-7 business days for processing.
+            </div>
+        <% } else if (order.orderStatus.toUpperCase() === 'RETURN CONFIRMED') { %>
+            <div style="margin-top: 10px; color: #155724;">
+                <strong>Order Status:</strong> TReturn Confirmed.Refund successfully completed.
+            </div>
+        <% } else if (order.orderStatus.toUpperCase() === 'RETURN REJECTED') { %>
+            <div style="margin-top: 10px; color: #721c24;">
+                <strong>Order Status:</strong> Return Rejected
+            </div>
+        <% } %>
         </div>
+      </div>
+
+      <div class="action-buttons">
+        <% if (['PENDING', 'PROCESSING', 'SHIPPED'].includes(order.orderStatus.toUpperCase())) { %>
+            <button class="cancel-btn" onclick="cancelOrder('<%= order.orderId %>')">Cancel Order</button>
+        <% } else if (order.orderStatus.toUpperCase() === 'CANCELLED') { %>
+            <button class="cancelled-btn" disabled>Cancelled</button>
+        <% } else if (order.orderStatus.toUpperCase() === 'DELIVERED') { %>
+            <button class="return-btn" onclick="openReturnModal('<%= order.orderId %>')">Return Order</button>
+        <% } else if (order.orderStatus.toUpperCase() === 'RETURN REQUESTED') { %>
+            <button class="return-pending-btn" disabled>Return Requested</button>
+        <% } else if (order.orderStatus.toUpperCase() === 'RETURN CONFIRMED') { %>
+            <button class="returned-btn" disabled>Return Confirmed</button>
+        <% } else if (order.orderStatus.toUpperCase() === 'RETURN REJECTED') { %>
+            <button class="return-rejected-btn" disabled>Return Rejected</button>
+        <% } %>
       </div>
 
       <% order.orderedItems.forEach(item => { %>
@@ -334,13 +539,7 @@
           <p class="product-meta">Quantity: <%= item.quantity %></p>
           <p class="product-price">₹<%= item.price.toFixed(2) %></p>
         </div>
-        <div class="action-buttons">
-          <% if (order.orderStatus !== 'DELIVERED' && order.orderStatus !== 'CANCELLED') { %>
-            <button class="cancel-btn" onclick="cancelOrder('<%= order.orderId %>')">Cancel Order</button>
-          <% } else if (order.orderStatus === 'CANCELLED') { %>
-            <button class="cancelled-btn" disabled>Cancelled</button>
-          <% } %>
-        </div>
+        
       </div>
       <% }); %>
       
@@ -391,6 +590,58 @@
         </div>
       </div>
       <% } %>
+    </div>
+
+    <!-- Return Modal -->
+    <div id="returnModal" class="return-modal">
+      <div class="return-modal-content">
+        <div class="return-modal-header">
+          <span>Request Return</span>
+          <button class="return-modal-close" onclick="closeReturnModal()">&times;</button>
+        </div>
+        <div class="return-modal-body">
+          <form id="returnForm">
+            <div class="return-form-group">
+              <label for="returnReason">Select a reason for return:</label>
+              
+              <div class="radio-option">
+                <input type="radio" id="reason1" name="returnReason" value="Defective product">
+                <label for="reason1">Defective product</label>
+              </div>
+              
+              <div class="radio-option">
+                <input type="radio" id="reason2" name="returnReason" value="Wrong item received">
+                <label for="reason2">Wrong item received</label>
+              </div>
+              
+              <div class="radio-option">
+                <input type="radio" id="reason3" name="returnReason" value="Changed my mind">
+                <label for="reason3">Changed my mind</label>
+              </div>
+              
+              <div class="radio-option">
+                <input type="radio" id="reason4" name="returnReason" value="Other">
+                <label for="reason4">Other</label>
+              </div>
+              
+              <div id="reasonError" class="error-message">Please select a return reason</div>
+            </div>
+            
+            <div class="return-form-group">
+              <label for="returnDetails">Additional Details:</label>
+              <textarea id="returnDetails" name="returnDetails" placeholder="Please provide more details about your return request..."></textarea>
+              <div id="detailsError" class="error-message">Please provide details for "Other" reason</div>
+            </div>
+            
+            <input type="hidden" id="orderId" name="orderId" value="">
+            
+            <div class="return-form-buttons">
+              <button type="button" class="return-cancel-btn" onclick="closeReturnModal()">Cancel</button>
+              <button type="button" class="return-submit-btn" onclick="submitReturnRequest()">Submit Return</button>
+            </div>
+          </form>
+        </div>
+      </div>
     </div>
 
     <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
@@ -469,6 +720,113 @@
             }
           }
         });
+      }
+
+      // Return order modal functions
+      function openReturnModal(orderId) {
+        document.getElementById('orderId').value = orderId;
+        document.getElementById('returnModal').style.display = 'flex';
+        resetReturnForm();
+      }
+      console.log("open modal")
+      function closeReturnModal() {
+        document.getElementById('returnModal').style.display = 'none';
+      }
+      console.log("jkjakdajjkjkajsdjd")
+      
+      function resetReturnForm() {
+        document.getElementById('returnForm').reset();
+        document.getElementById('reasonError').style.display = 'none';
+        document.getElementById('detailsError').style.display = 'none';
+      }
+      
+      function validateReturnForm() {
+        let isValid = true;
+        
+        // Check if a reason is selected
+        const selectedReason = document.querySelector('input[name="returnReason"]:checked');
+        if (!selectedReason) {
+          document.getElementById('reasonError').style.display = 'block';
+          isValid = false;
+        } else {
+          document.getElementById('reasonError').style.display = 'none';
+          
+          // If "Other" is selected, make sure details are provided
+          if (selectedReason.value === 'Other') {
+            const details = document.getElementById('returnDetails').value.trim();
+            if (!details) {
+              document.getElementById('detailsError').style.display = 'block';
+              isValid = false;
+            } else {
+              document.getElementById('detailsError').style.display = 'none';
+            }
+          } else {
+            document.getElementById('detailsError').style.display = 'none';
+          }
+        }
+        
+        return isValid;
+      }
+      
+      async function submitReturnRequest() {
+        if (!validateReturnForm()) {
+          return;
+        }
+        
+        const orderId = document.getElementById('orderId').value;
+        const selectedReason = document.querySelector('input[name="returnReason"]:checked');
+        const returnDetails = document.getElementById('returnDetails').value.trim();
+        console.log("orderId common",orderId)
+        console.log("reason for return:",selectedReason);
+        console.log("Details of return:",returnDetails)
+        // Prepare the data
+        const returnData = {
+          returnReason: selectedReason.value,
+          returnDetails: returnDetails
+        };
+        
+        try {
+          const response = await fetch(`/returnOrder/${orderId}`, {
+            method: 'POST',
+            headers: {
+              'Content-Type': 'application/json',
+            },
+            body: JSON.stringify(returnData)
+          });
+          
+          const data = await response.json();
+          
+          // Close the modal
+          closeReturnModal();
+          
+          if (response.ok) {
+            Swal.fire({
+              title: 'Success!',
+              text: 'Return request submitted successfully',
+              icon: 'success',
+              confirmButtonColor: '#DE3E7E'
+            }).then(() => {
+              location.reload();
+            });
+          } else {
+            Swal.fire({
+              title: 'Error!',
+              text: data.message || 'Failed to submit return request',
+              icon: 'error',
+              confirmButtonColor: '#DE3E7E'
+            });
+          }
+        } catch (error) {
+          console.error('Error:', error);
+          closeReturnModal();
+          
+          Swal.fire({
+            title: 'Error!',
+            text: 'Failed to submit return request',
+            icon: 'error',
+            confirmButtonColor: '#DE3E7E'
+          });
+        }
       }
     </script>
   </body>

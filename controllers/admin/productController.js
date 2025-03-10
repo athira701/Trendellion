@@ -126,7 +126,7 @@ const addProduct = async (req, res) => {
         // if (details.size) {
         //     // Ensure sizes is always an array
         //     sizes = Array.isArray(details.size) 
-        //         ? details.size 
+       //         // ? details.size 
         //         : [details.size];
             
         //     // Clean and filter sizes

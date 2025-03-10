@@ -81,12 +81,12 @@ const orderSchema = new Schema({
   },
   paymentMethod: {
     type: String,
-    enum: ["COD", "ONLINE"],
+    enum: ["COD", "ONLINE","Wallet"],
     required: true
   },
   paymentStatus: {
     type: String,
-    enum: ["PENDING", "PAID", "FAILED"],
+    enum: ["PENDING", "PAID", "FAILED","REFUNDED"],
     default: "PENDING"
   },
   orderStatus: {
@@ -105,6 +105,21 @@ const orderSchema = new Schema({
     type: Number,
     default: 0
   }, 
+  returnReason: {
+    type: String,
+    default: null
+  },
+  returnDetails: {
+     type: String, 
+     default: '' 
+    },
+  returnRequestedAt: { 
+    type: Date 
+  },
+  razorpayOrderId: {
+    type: String,
+    default: null
+  },
   trackingInfo: {
     carrier: String,
     trackingNumber: String

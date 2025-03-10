@@ -46,6 +46,9 @@ db()
 app.use("/",userRouter)
 app.use("/admin",adminRouter)
 
+app.use((req,res,next)=>{
+    res.status(405).render("user/page-404",{message:"error"})
+})
 
 app.use((err, req, res, next) => {
     console.error(err.stack);

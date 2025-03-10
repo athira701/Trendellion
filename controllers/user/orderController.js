@@ -4,12 +4,14 @@ const User=require('../../models/userSchema')
 const Product = require('../../models/productSchema')
 const Address = require('../../models/addressSchema')
 const Coupon = require('../../models/couponSchema')
+const Wallet = require('../../models/walletSchema')
 
 const placeOrder = async (req, res) => {
     try {
         const {addressId,  couponCode, paymentMethod } = req.body
         const userId = req.session.user._id;
         console.log("USERID:",userId)
+        //const wallet = await Wallet.findOne({userId:userId})
         // Validate user session
         if (!userId) {
             return res.status(401).json({ success: false, message: "Please login to continue" });
@@ -63,6 +65,13 @@ const placeOrder = async (req, res) => {
         const discountedTotal = cart.discountedTotal;
         const deliveryFee = cartTotal > 1000 ? 0 : 100;
         const totalAmount = discountedTotal + deliveryFee;
+
+        if (paymentMethod.toUpperCase() === 'COD' && totalAmount > 1000) {
+            return res.status(400).json({ 
+                success: false, 
+                message: "Cash on Delivery is not available for orders above Rs 1000. Please choose online payment." 
+            });
+        }
     
         const order = new Order({
           userId,
@@ -155,29 +164,28 @@ const getOrderPage = async (req, res) => {
         res.status(500).send("Error loading orders page");
     }
 };
-
 const getOrderDetails = async (req, res) => {
     try {
-        const orderId = req.params.orderId; // Assuming the orderId is passed as a URL parameter
+        const orderId = req.params.orderId; 
 
         // Fetch the order from the database
         const order = await Order.findOne({ orderId: orderId })
-            .populate('userId') // Populate user details if needed
-            .populate('orderedItems.product'); // Populate product details
+            .populate('userId') 
+            .populate('orderedItems.product'); 
 
         if (!order) {
             return res.status(404).send('Order not found');
         }
-
-        // Prepare the data to be passed to the EJS template
+        console.log("Order status:", order.orderStatus);
+        
         const orderData = {
             orderId: order.orderId,
             name: order.address.name,
             address: `${order.address.landMark}, ${order.address.city}, ${order.address.state}, ${order.address.pincode}`,
             phone: order.address.phone,
             orderedItems: order.orderedItems.map(item => ({
-                productName: item.product.productName, // Assuming the product has a 'name' field
-                productImage: item.product.productImage, // Assuming the product has an 'image' field
+                productName: item.product.productName, 
+                productImage: item.product.productImage, 
                 size: item.size,
                 quantity: item.quantity,
                 price: item.price
@@ -214,31 +222,72 @@ const getOrderDates = (order) => {
 const cancelOrderItem = async (req, res) => {
     try {
         const orderId = req.params.orderId;
+        // const productId = req.params.id
+       
 
-        // Find the order
+      
         const order = await Order.findOne({ orderId: orderId });
         if (!order) {
             return res.status(404).json({ message: 'Order not found' });
         }
+        console.log("jhagsjdgash",order);
 
-        // Check if the order can be cancelled
         if (order.orderStatus === 'DELIVERED' || order.orderStatus === 'CANCELLED') {
             return res.status(400).json({ message: 'Order cannot be cancelled' });
         }
 
-        // Update the order status to CANCELLED
+        if(order.paymentMethod === 'ONLINE' || order.paymentMethod === 'Wallet') {
+
+            const userId = order.userId._id ? order.userId._id : order.userId;
+            console.log("User ID of cancelled order is Here:",userId)
+
+            let wallet = await Wallet.findOne({ userId: userId });
+            console.log("Wallet found:", wallet ? "Yes" : "No");
+            
+            if (!wallet) {
+                wallet = new Wallet({
+                    userId: userId,
+                    balance: 0,
+                    transactions: []
+                });
+            }
+
+            console.log("Before refund - Wallet balance:", wallet.balance);
+            console.log("Refund amount:", order.totalAmount);
+            
+            
+            wallet.balance += order.totalAmount;
+            
+            
+            wallet.transactions.push({
+                amount: order.totalAmount,
+                transactionsMethod: 'REFUND',
+                date: new Date(),
+                orderId: order._id,
+                status: 'completed'
+            });
+            console.log("After refund - Wallet balance:", wallet.balance);
+          
+            
+           
+            await wallet.save();
+            
+            order.paymentStatus = 'REFUNDED';
+        }
+
+      
         order.orderStatus = 'CANCELLED';
         await order.save();
 
-        // Update the stock quantity for each product in the order
+        
         for (const item of order.orderedItems) {
             const product = await Product.findById(item.product);
             if (product) {
-                // Find the stock entry for the specific size
+          
                 const stockEntry = product.stock.find(stock => stock.size === item.size);
                 if (stockEntry) {
-                    stockEntry.quantity += item.quantity; // Add back the cancelled quantity
-                    product.totalStock += item.quantity; // Update total stock
+                    stockEntry.quantity += item.quantity; 
+                    product.totalStock += item.quantity; 
                     await product.save();
                 }
             }
@@ -251,11 +300,62 @@ const cancelOrderItem = async (req, res) => {
     }
 };
 
+const returnOrderItem = async (req, res) => {
+    try {
+        console.log("hellooooooooooooooo")
+        const orderId = req.params.orderId;
+        const { returnReason, returnDetails } = req.body;
+
+        // Find the order
+        const order = await Order.findOne({ orderId: orderId }).populate('orderedItems.product');
+        console.log("Order in the return order section:",order);
+        if (!order) {
+            return res.status(404).json({ message: 'Order not found' });
+        }
+
+        console.log("Current order status:", order.orderStatus);
+        if (order.orderStatus.toUpperCase() !== 'DELIVERED') {
+            return res.status(400).json({ 
+                message: 'Only delivered orders can be returned',
+                currentStatus: order.orderStatus // Add current status to response for debugging
+            });
+        }
+
+        // Check return time limit (30 days)
+        const deliveryDate = order.updatedAt; // Assuming updatedAt as delivery date
+        const daysSinceDelivery = Math.floor((Date.now() - deliveryDate) / (1000 * 60 * 60 * 24));
+        if (daysSinceDelivery > 30) {
+            return res.status(400).json({ message: 'Return period has expired (30 days limit)' });
+        }
+
+        // Update order status and store return information
+        order.orderStatus = 'RETURN REQUESTED';
+        order.returnReason = returnReason || 'Not specified';
+        order.returnDetails = returnDetails || ''; // Store additional details if provided
+        order.returnRequestedAt = new Date(); // Add timestamp for return request
+
+        await order.save();
+
+        // Optional: Add notification logic here (e.g., email to admin)
+        // Example: await sendAdminNotification(order);
+
+        res.status(200).json({ 
+            message: 'Return request submitted successfully',
+            orderId: order.orderId,
+            returnReason: order.returnReason,
+            returnDetails: order.returnDetails
+        });
+    } catch (error) {
+        console.error('Error processing return request:', error);
+        res.status(500).json({ message: 'Internal Server Error' });
+    }
+};
 
 module.exports = {
     placeOrder,
     orderPlacedpage,
     getOrderPage,
     getOrderDetails,
-    cancelOrderItem
+    cancelOrderItem,
+    returnOrderItem
 }

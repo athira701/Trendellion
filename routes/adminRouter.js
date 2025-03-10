@@ -64,6 +64,9 @@ router.post('/editProduct/:id', upload.array('cropImages', 4), productController
 //Order management
 router.get("/orders",orderController.loadOrder)
 router.get('/singleorderview/:orderId',orderController.singleOrder);
+router.get('/cancelledorders',orderController.getCancelledOrders);
+router.get('/returnRequestedOrders',orderController.getReturnRequestedOrderPage)
+router.post("/approveReturnOrder/:orderId",orderController.approveReturn)
 router.post("/changeStatus",orderController.changeStatus)
 
 //Coupon management

@@ -2,11 +2,13 @@ const Cart = require('../../models/cartSchema');
 const Address = require('../../models/addressSchema');
 const User = require("../../models/userSchema")
 const Coupon = require('../../models/couponSchema')
+const Wallet = require('../../models/walletSchema')
 
 
 const getCheckoutPage = async (req, res) => {
   try {
     const userId = req.session.user._id;
+    const wallet=await Wallet.findOne({userId:userId})
 
     // Fetch the user's addresses and find the default one
     const userAddress = await Address.findOne({ userId });
@@ -81,6 +83,7 @@ const getCheckoutPage = async (req, res) => {
       totalAmount,
       cart: userCart,
       couponCode,
+      wallet
     });
   } catch (error) {
     console.error("Error fetching checkout page:", error);
@@ -241,22 +244,37 @@ const availableCoupons = async (req, res) => {
       }
   
       // Reset cart values
-      const cartTotal = cart.cartTotal; // Original total before discount
+      const cartTotal = cart.cartTotal; 
       const deliveryFee = cartTotal > 1000 ? 0 : 100;
-      const totalAmount = cartTotal + deliveryFee; // New total after removing coupon
-  
+      const totalAmount = cartTotal + deliveryFee; 
+
+      const couponId = cart.appliedCoupon
       await Cart.findOneAndUpdate(
         { userId },
         {
           appliedCoupon: null,
           discountAmount: 0,
-          discountedTotal: cartTotal, // Reset to original cartTotal
+          discountedTotal: cartTotal, 
         },
         { new: true } // Return updated document
       );
   
       // Reset session flag
       req.session.couponApplied = false;
+
+      if (couponId) {
+        const user = await User.findById(userId);
+        if (user && user.usedCoupons && user.usedCoupons.includes(couponId.toString())) {
+          user.usedCoupons = user.usedCoupons.filter(id => id !== couponId.toString());
+          await user.save();
+        }
+  
+        const coupon = await Coupon.findById(couponId);
+        if (coupon && coupon.usedCount > 0) {
+          coupon.usedCount -= 1;
+          await coupon.save();
+        }
+      }
   
       res.json({
         success: true,
