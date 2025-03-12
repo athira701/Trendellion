@@ -6,6 +6,8 @@ const categoryController = require("../controllers/admin/categoryController")
 const productController = require("../controllers/admin/productController")
 const orderController = require("../controllers/admin/orderController")
 const couponController = require('../controllers/admin/couponController')
+const offerController = require('../controllers/admin/offerController')
+const salesController = require('../controllers/admin/salesController')
 const {userAuth,adminAuth,isAdminAuthenticated} = require("../middlewares/auth")
 const multer=require("multer")
 const path=require('path')
@@ -75,6 +77,18 @@ router.get('/addCoupon', couponController.loadAddCouponPage)
 router.post('/addCoupon',couponController.addCoupon)
 router.post('/editCoupon',couponController.editCoupon)
 router.get('/deleteCoupon/:id',couponController.deleteCoupon)
+
+//Offer management
+router.get('/offers',offerController.getOfferPage)
+router.get('/addOffer',offerController.getAddOfferPage)
+router.post('/addOffer',offerController.addOffer)
+router.post('/deleteOffer',offerController.deleteOffer)
+router.get('/editOffer',offerController.loadEditOffer)
+router.post('/editOfferr',offerController.editOffer)
+
+//Sales management
+// router.get('/salesReport',salesController.getSalesReport)
+
 
 
 

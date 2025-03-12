@@ -2,6 +2,10 @@ const mongoose = require('mongoose')
 const {Schema} = mongoose
 
 const offerSchema = new Schema ({
+    offerName: {
+        type: String,
+        required: true
+    },
     offerType: {
         type: String,
         enum: ["product", "category", "referral"], 
