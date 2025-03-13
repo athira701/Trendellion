@@ -516,6 +516,7 @@
         <% } else if (order.orderStatus.toUpperCase() === 'CANCELLED') { %>
             <button class="cancelled-btn" disabled>Cancelled</button>
         <% } else if (order.orderStatus.toUpperCase() === 'DELIVERED') { %>
+            <button class="download-btn" onclick="downloadInvoice('<%= order.orderId %>')">Download Invoice</button>
             <button class="return-btn" onclick="openReturnModal('<%= order.orderId %>')">Return Order</button>
         <% } else if (order.orderStatus.toUpperCase() === 'RETURN REQUESTED') { %>
             <button class="return-pending-btn" disabled>Return Requested</button>
@@ -523,7 +524,8 @@
             <button class="returned-btn" disabled>Return Confirmed</button>
         <% } else if (order.orderStatus.toUpperCase() === 'RETURN REJECTED') { %>
             <button class="return-rejected-btn" disabled>Return Rejected</button>
-        <% } %>
+        <% } %>
+      </div>
       </div>
 
       <% order.orderedItems.forEach(item => { %>
@@ -646,6 +648,12 @@
 
     <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
     <script>
+// Download invoice function
+function downloadInvoice(orderId) {
+  console.log(orderId)
+  window.location.href =`/download-invoice/${orderId}`;
+}
+
       document.addEventListener("DOMContentLoaded", function () {
         // Only update timeline if order is not cancelled
         <% if (order.orderStatus !== 'CANCELLED') { %>

@@ -114,7 +114,9 @@ const addOffer = async (req, res) => {
             offerData.maxRedemptions = Number(maxRedemptions);
         }
 
+        let discountApplied = false;
         
+        // For product-type offers
         if (offerType === "product") {
             if (!productId || productId.trim() === "") {
                 return res.status(400).json({
@@ -131,7 +133,6 @@ const addOffer = async (req, res) => {
                 });
             }
             
-           
             if (productExists.isBlocked) {
                 return res.status(400).json({
                     success: false,
@@ -140,9 +141,22 @@ const addOffer = async (req, res) => {
             }
             
             offerData.productId = productId;
+            
+            // Apply discount to the product - FIXED CALCULATION
+            const originalPrice = productExists.salePrice;
+            const discountAmount = (originalPrice * Number(discount)) / 100;
+            const newSalePrice = originalPrice - discountAmount; // This is correct - we subtract the discount
+            console.log("NEW",newSalePrice)
+            
+            // Update the product's sale price with the discounted price
+            await Product.findByIdAndUpdate(productId, {
+                salePrice: Math.round(newSalePrice * 100) / 100 // Round to 2 decimal places
+            });
+            
+            discountApplied = true;
         }
 
-        
+        // For category-type offers
         if (offerType === "category") {
             if (!categoryId || categoryId.trim() === "") {
                 return res.status(400).json({
@@ -151,7 +165,6 @@ const addOffer = async (req, res) => {
                 });
             }
             
-           
             const categoryExists = await Category.findById(categoryId);
             if (!categoryExists) {
                 return res.status(400).json({
@@ -159,7 +172,6 @@ const addOffer = async (req, res) => {
                     message: 'Selected category does not exist'
                 });
             }
-            
             
             if (categoryExists.isBlocked || categoryExists.isDeleted) {
                 return res.status(400).json({
@@ -169,9 +181,33 @@ const addOffer = async (req, res) => {
             }
             
             offerData.categoryId = categoryId;
+            
+            // Update the category with the offer percentage
+            await Category.findByIdAndUpdate(categoryId, {
+                categoryOffer: Number(discount)
+            });
+            
+            // Apply discount to all products in this category
+            const categoryProducts = await Product.find({ 
+                category: categoryId,
+                isBlocked: false
+            });
+            
+            // Apply discount to all products in the category - FIXED CALCULATION
+            for (const product of categoryProducts) {
+                const originalPrice = product.salePrice;
+                const discountAmount = (originalPrice * Number(discount)) / 100;
+                const newSalePrice = originalPrice - discountAmount; // Subtract the discount amount
+                
+                await Product.findByIdAndUpdate(product._id, {
+                    salePrice: Math.round(newSalePrice * 100) / 100 // Round to 2 decimal places
+                });
+            }
+            
+            discountApplied = true;
         }
 
-        
+        // For referral-type offers
         if (offerType === "referral") {
             if (!referralCode || referralCode.trim() === "") {
                 return res.status(400).json({
@@ -180,9 +216,7 @@ const addOffer = async (req, res) => {
                 });
             }
             
-            
             const formattedReferralCode = referralCode.trim().toUpperCase();
-            
             
             const existingOffer = await Offer.findOne({ referralCode: formattedReferralCode });
             if (existingOffer) {
@@ -195,19 +229,26 @@ const addOffer = async (req, res) => {
             offerData.referralCode = formattedReferralCode;
         }
 
-        
+        // Create and save the new offer
         const newOffer = new Offer(offerData);
         await newOffer.save();
 
+        // Add debugging information in development
+        console.log('Offer applied:', {
+            offerType,
+            discount,
+            affectedId: offerType === 'product' ? productId : offerType === 'category' ? categoryId : null,
+            discountApplied
+        });
+
         return res.status(200).json({
             success: true,
-            message: 'Offer added successfully',
+            message: `Offer added successfully${discountApplied ? ' and discount applied' : ''}`,
             offer: newOffer
         });
 
     } catch (error) {
         console.error('Error while adding offer:', error);
-        
         
         if (error.name === 'ValidationError') {
             const errorMessage = Object.values(error.errors).map(err => err.message).join(', ');
@@ -216,7 +257,6 @@ const addOffer = async (req, res) => {
                 message: errorMessage
             });
         }
-        
         
         if (error.code === 11000) {
             return res.status(400).json({
@@ -228,9 +268,9 @@ const addOffer = async (req, res) => {
         return res.status(500).json({
             success: false,
             message: `Server error: ${error.message}`
-        })
+        });
     }
-}
+};
 
 const deleteOffer = async (req, res) => {
     try {

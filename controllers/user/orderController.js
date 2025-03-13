@@ -37,7 +37,7 @@ const placeOrder = async (req, res) => {
        
         if (!['COD', 'ONLINE'].includes(paymentMethod?.toUpperCase())) {
             return res.status(400).json({ success: false, message: "Invalid payment method" });
-          }
+        }
 
         // Calculate totals and prepare order items
         const orderItems = [];
@@ -72,6 +72,7 @@ const placeOrder = async (req, res) => {
                 message: "Cash on Delivery is not available for orders above Rs 1000. Please choose online payment." 
             });
         }
+        
     
         const order = new Order({
           userId,
@@ -87,8 +88,9 @@ const placeOrder = async (req, res) => {
           orderStatus: 'PENDING',
           couponCode: couponCode || ""
         });
-    
+        
         await order.save();
+        
     
         // Reset cart completely to avoid negative values
         cart.item = [];

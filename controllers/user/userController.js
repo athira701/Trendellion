@@ -2,6 +2,8 @@ const User = require("../../models/userSchema")
 const Product = require('../../models/productSchema')
 const Category = require('../../models/categorySchema')
 const Address = require('../../models/addressSchema')
+const Order = require('../../models/orderSchema')
+const PDFDocument = require('pdfkit')
 const nodemailer = require('nodemailer')
 const bcrypt = require('bcrypt')
 const crypto = require('crypto')
@@ -700,6 +702,134 @@ const updateProfile = async (req,res) =>{
 };
 
 
+const downloadInvoice = async (req, res) => {
+    try {
+      // The issue is here - req.params is an object, not a string
+      // Extract the orderId properly from req.params
+      const { id } = req.params;
+      
+      console.log("order id:", id);
+      
+      // Find the order using the correct id
+      const order = await Order.findOne({ orderId: id }).populate({
+        path: 'orderedItems.product',
+        select: 'productName productImage'
+      });
+      
+      if (!order) {
+        return res.status(404).json({ success: false, message: 'Order not found' });
+      }
+      
+      // Create a PDF document
+      const doc = new PDFDocument({ margin: 50 });
+      
+      // Set the response headers for PDF download
+      res.setHeader('Content-Type', 'application/pdf');
+      res.setHeader('Content-Disposition', `attachment; filename=invoice-${id}.pdf`);
+      
+      // Pipe the PDF to the response
+      doc.pipe(res);
+      
+      // Add content to the PDF
+      // Header
+      doc.fontSize(20).text('INVOICE', { align: 'center' });
+      doc.moveDown();
+      
+      // Company info
+      doc.fontSize(12).text('TRENDELLION', { align: 'right' });
+      doc.text('Bengaluru, Karnataka', { align: 'right' });
+      doc.text('Phone: +91 7356957390', { align: 'right' });
+      doc.text('Email: support@trendellion.com', { align: 'right' });
+      doc.moveDown(2);
+      
+      // Customer & Order info
+      doc.fontSize(12).text('Bill To:');
+      doc.fontSize(10).text(`Name: ${order.address.name}`);
+      doc.text(`Address: ${order.address.landMark}, ${order.address.city}`);
+      doc.text(`${order.address.state} - ${order.address.pincode}`);
+      doc.text(`Phone: ${order.address.phone}`);
+      doc.moveDown();
+      
+      // Order details
+      doc.fontSize(12).text('Order Details:');
+      doc.fontSize(10).text(`Order ID: ${order.orderId}`);
+      doc.text(`Order Date: ${new Date(order.createdAt).toLocaleDateString()}`);
+      doc.text(`Payment Method: ${order.paymentMethod}`);
+      doc.text(`Payment Status: ${order.paymentStatus}`);
+      doc.moveDown(2);
+      
+      // Table header
+      let y = doc.y;
+      doc.fontSize(10).text('Item', 50, y);
+      doc.text('Size', 220, y);
+      doc.text('Qty', 280, y);
+      doc.text('Unit Price', 320, y);
+      doc.text('Amount', 400, y);
+      
+      // Draw a line
+      y += 15;
+      doc.moveTo(50, y).lineTo(550, y).stroke();
+      y += 10;
+      
+      // Table content
+      for (const item of order.orderedItems) {
+        const productName = item.product ? item.product.productName : 'Product not found';
+        
+        doc.text(productName, 50, y, { width: 170 });
+        doc.text(item.size, 220, y);
+        doc.text(item.quantity.toString(), 280, y);
+        doc.text(`₹${item.price.toFixed(2)}`, 320, y);
+        doc.text(`₹${(item.price * item.quantity).toFixed(2)}`, 400, y);
+        
+        y += 20;
+        
+        // Check if we need a new page
+        if (y > 700) {
+          doc.addPage();
+          y = 50;
+        }
+      }
+      
+      // Draw a line
+      doc.moveTo(50, y).lineTo(550, y).stroke();
+      y += 10;
+      
+      // Summary
+      doc.text('Subtotal:', 320, y);
+      doc.text(`₹${order.cartTotal.toFixed(2)}`, 400, y);
+      y += 15;
+      
+      if (order.discountAmount > 0) {
+        doc.text('Discount:', 320, y);
+        doc.text(`-₹${order.discountAmount.toFixed(2)}`, 400, y);
+        y += 15;
+      }
+      
+      if (order.couponDiscount > 0) {
+        doc.text('Coupon Discount:', 320, y);
+        doc.text(`-₹${order.couponDiscount.toFixed(2)}`, 400, y);
+        y += 15;
+      }
+      
+      doc.text('Delivery Fee:', 320, y);
+      doc.text(`₹${order.deliveryFee.toFixed(2)}`, 400, y);
+      y += 15;
+      
+      doc.fontSize(12).text('Total Amount:', 320, y);
+      doc.fontSize(12).text(`₹${order.totalAmount.toFixed(2)}`, 400, y);
+      
+      // Footer
+      doc.fontSize(10).text('Thank you for your business!', 50, 700, { align: 'center' });
+      
+      // Finalize the PDF and end the stream
+      doc.end();
+      
+    } catch (error) {
+      console.error('Error generating invoice:', error);
+      res.status(500).json({ success: false, message: 'Failed to generate invoice', error: error.message });
+    }
+  };
+
 module.exports = {
     homepage,
     pageNotFound,
@@ -721,5 +851,6 @@ module.exports = {
     shopPageInfo,
     loadProfile,
     updateProfile,
+    downloadInvoice 
    
 }

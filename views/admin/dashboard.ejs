@@ -1,134 +1,558 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Admin Dashboard</title>
+    <!-- Bootstrap CSS -->
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+    <!-- Chart.js -->
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <!-- Font Awesome -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <style>
+        .dashboard-card {
+            border-radius: 10px;
+            box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+            margin-bottom: 20px;
+            transition: transform 0.3s;
+        }
+        .dashboard-card:hover {
+            transform: translateY(-5px);
+        }
+        .stat-card {
+            min-height: 120px;
+        }
+        .stat-value {
+            font-size: 1.8rem;
+            font-weight: bold;
+        }
+        .stat-label {
+            color: #6c757d;
+            font-size: 0.9rem;
+        }
+        .progress {
+            height: 8px;
+        }
+        .card-icon {
+            font-size: 2rem;
+            color: #6c757d;
+        }
+        .table-responsive {
+            border-radius: 10px;
+            overflow: hidden;
+        }
+        .nav-link.active {
+            background-color: #f8f9fa !important;
+            color: #0d6efd !important;
+        }
+    </style>
+</head>
+<body>
+    <!-- Navigation -->
+    <%- include('../partials/admin/header1') %>
 
-<%- include('../partials/admin/header1') %>   
-
-
-<h1>Welcome to DashBoard</h1>
-
-
-<section class="content-main">
-    <div class="content-header">
-        <div>
-            
-            <p>Whole data about your business here</p>
-        </div>
-        <div>
-            
-        </div>
-    </div>
-    <div class="row">
-        <div class="col-lg-3">
-            <div class="card card-body mb-4">
-                <article class="icontext">
-                    <span class="icon icon-sm rounded-circle bg-primary-light"><i
-                            class="text-primary material-icons md-monetization_on"></i></span>
-                    <div class="text">
-                        <h6 class="mb-1 card-title">Revenue</h6>
-
-                       
-                        <span class="text-sm"> Shipping fees are not included </span>
-                    </div>
-                </article>
+    <div class="container-fluid py-4">
+        <div class="row mb-4">
+            <div class="col-12">
+                <h2 class="mb-0">Dashboard</h2>
+                <p class="text-muted">Welcome back, <%= admin.username %></p>
             </div>
         </div>
 
-        <div class="col-lg-3">
-            <div class="card card-body mb-4">
-                <article class="icontext">
-                    <span class="icon icon-sm rounded-circle bg-success-light"><i
-                            class="text-success material-icons md-local_shipping"></i></span>
-                    <div class="text">
-                        <h6 class="mb-1 card-title">Orders</h6>
-                        <span>
-                           
-                        </span>
-                        <span class="text-sm"> Excluding orders in transit </span>
-                    </div>
-                </article>
-            </div>
-        </div>
-        <div class="col-lg-3">
-            <div class="card card-body mb-4">
-                <article class="icontext">
-                    <span class="icon icon-sm rounded-circle bg-warning-light"><i
-                            class="text-warning material-icons md-qr_code"></i></span>
-                    <div class="text">
-                        <h6 class="mb-1 card-title">Products</h6>
-                        <span>
-                            
-                        </span>
-                        <span class="text-sm"> 
-                    </div>
-                </article>
-            </div>
-        </div>
-        <div class="col-lg-3">
-          
-            <div class="card card-body mb-4">
-                <article class="icontext">
-                  <span class="icon icon-sm rounded-circle bg-info-light"><i class="text-info material-icons md-shopping_basket"></i></span>
-                  <div class="text">
-                    <h6 class="mb-1 card-title">Monthly Earning</h6>
-                  
-                    <span class="text-sm"> Based on your local time. </span>
-                  </div>
-                </article>
-              </div>
-              
-        </div>
-    </div>
-    <div class="row">
-        <div class="col-xl-8 col-lg-12">
-            <div class="card mb-4">
-                <article class="card-body">
-                    <h5 class="card-title">Sale statistics</h5>
-                    <header class="card-header">
-                        <div class="row align-items-center">
-                            <div class="col-md-6 col-12 me-auto mb-md-0 mb-3">
-                                <div class="d-flex ">
-                                    <label for="categoryName" class="form-label me-1 ">Enter year</label>
-                                    <input type="text" value="2024" placeholder="2024" class="form-control mx-1 "
-                                        id="time" />
-                                    <p id="catAlert" class="text-danger"></p>
-                                    <a href="#" id="yearlyBtn" data-id="yearly"
-                                        class="btn btn-primary btn-sm rounded mx-1 ">Yearly</a>
-                                    <a href="#" id="monthlyBtn" data-id="monthly"
-                                        class="btn btn-primary btn-sm rounded mx-1 ">Monthly</a>
-                                </div>
+        <!-- Stats Summary -->
+        <div class="row">
+            <div class="col-md-3">
+                <div class="card dashboard-card stat-card">
+                    <div class="card-body">
+                        <div class="row">
+                            <div class="col-8">
+                                <div class="stat-label">Total Revenue</div>
+                                <div class="stat-value">$<%= totalRevenue.toLocaleString(undefined, {minimumFractionDigits: 2, maximumFractionDigits: 2}) %></div>
+                            </div>
+                            <div class="col-4 text-end">
+                                <i class="fas fa-dollar-sign card-icon text-primary"></i>
                             </div>
                         </div>
-                    </header>
-                    <canvas id="myChart" height="180px"></canvas>
-                </article>
+                        <div class="mt-2">
+                            <span class="text-success small"><i class="fas fa-circle"></i> Active</span>
+                            <span class="small text-muted ms-2">+$<%= pendingRevenue.toLocaleString(undefined, {minimumFractionDigits: 2, maximumFractionDigits: 2}) %> pending</span>
+                        </div>
+                    </div>
+                </div>
             </div>
-
+            
+            <div class="col-md-3">
+                <div class="card dashboard-card stat-card">
+                    <div class="card-body">
+                        <div class="row">
+                            <div class="col-8">
+                                <div class="stat-label">Total Orders</div>
+                                <div class="stat-value"><%= totalOrders.toLocaleString() %></div>
+                            </div>
+                            <div class="col-4 text-end">
+                                <i class="fas fa-shopping-cart card-icon text-success"></i>
+                            </div>
+                        </div>
+                        <div class="mt-2">
+                            <% 
+                            const pendingCount = orderCounts['PENDING'] || 0;
+                            const processingCount = orderCounts['PROCESSING'] || 0;
+                            const activeOrderCount = pendingCount + processingCount;
+                            %>
+                            <span class="text-warning small"><i class="fas fa-circle"></i> Processing</span>
+                            <span class="small text-muted ms-2"><%= activeOrderCount %> active orders</span>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            
+            <div class="col-md-3">
+                <div class="card dashboard-card stat-card">
+                    <div class="card-body">
+                        <div class="row">
+                            <div class="col-8">
+                                <div class="stat-label">Total Products</div>
+                                <div class="stat-value"><%= totalProducts.toLocaleString() %></div>
+                            </div>
+                            <div class="col-4 text-end">
+                                <i class="fas fa-box card-icon text-info"></i>
+                            </div>
+                        </div>
+                        <div class="mt-2">
+                            <% const activeProductPercentage = Math.round((activeProducts / totalProducts) * 100); %>
+                            <div class="progress">
+                                <div class="progress-bar bg-info" role="progressbar" style="width: <%= activeProductPercentage %>%"></div>
+                            </div>
+                            <div class="small text-muted mt-1"><%= activeProducts %> active (<%= activeProductPercentage %>%)</div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            
+            <div class="col-md-3">
+                <div class="card dashboard-card stat-card">
+                    <div class="card-body">
+                        <div class="row">
+                            <div class="col-8">
+                                <div class="stat-label">Refunds</div>
+                                <div class="stat-value">$<%= totalRefunds.toLocaleString(undefined, {minimumFractionDigits: 2, maximumFractionDigits: 2}) %></div>
+                            </div>
+                            <div class="col-4 text-end">
+                                <i class="fas fa-undo card-icon text-danger"></i>
+                            </div>
+                        </div>
+                        <div class="mt-2">
+                            <% const refundPercentage = totalRevenue > 0 ? Math.round((totalRefunds / totalRevenue) * 100) : 0; %>
+                            <span class="text-danger small"><i class="fas fa-circle"></i> <%= refundPercentage %>% of revenue</span>
+                        </div>
+                    </div>
+                </div>
+            </div>
         </div>
 
+        <!-- Charts Row -->
+        <div class="row">
+            <div class="col-md-8">
+                <div class="card dashboard-card">
+                    <div class="card-header bg-transparent">
+                        <h5 class="mb-0">Monthly Performance</h5>
+                    </div>
+                    <div class="card-body">
+                        <ul class="nav nav-tabs mb-3" id="chartTabs" role="tablist">
+                            <li class="nav-item" role="presentation">
+                                <button class="nav-link active" id="revenue-tab" data-bs-toggle="tab" data-bs-target="#revenue" type="button" role="tab" aria-selected="true">Revenue</button>
+                            </li>
+                            <li class="nav-item" role="presentation">
+                                <button class="nav-link" id="orders-tab" data-bs-toggle="tab" data-bs-target="#orders" type="button" role="tab" aria-selected="false">Orders</button>
+                            </li>
+                            <li class="nav-item" role="presentation">
+                                <button class="nav-link" id="aov-tab" data-bs-toggle="tab" data-bs-target="#aov" type="button" role="tab" aria-selected="false">Avg. Order Value</button>
+                            </li>
+                        </ul>
+                        <div class="tab-content" id="chartTabContent">
+                            <div class="tab-pane fade show active" id="revenue" role="tabpanel">
+                                <canvas id="revenueChart" height="300"></canvas>
+                            </div>
+                            <div class="tab-pane fade" id="orders" role="tabpanel">
+                                <canvas id="ordersChart" height="300"></canvas>
+                            </div>
+                            <div class="tab-pane fade" id="aov" role="tabpanel">
+                                <canvas id="aovChart" height="300"></canvas>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            
+            <div class="col-md-4">
+                <div class="card dashboard-card">
+                    <div class="card-header bg-transparent">
+                        <h5 class="mb-0">Payment Methods</h5>
+                    </div>
+                    <div class="card-body">
+                        <canvas id="paymentMethodChart" height="260"></canvas>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Order Status & Top Products -->
+        <div class="row">
+            <div class="col-md-4">
+                <div class="card dashboard-card">
+                    <div class="card-header bg-transparent">
+                        <h5 class="mb-0">Order Status</h5>
+                    </div>
+                    <div class="card-body">
+                        <ul class="list-group list-group-flush">
+                            <% 
+                            const statusColors = {
+                                'PENDING': 'warning',
+                                'PROCESSING': 'info',
+                                'Shipped': 'primary',
+                                'DELIVERED': 'success',
+                                'CANCELLED': 'danger',
+                                'REFUNDED': 'danger'
+                            };
+                            
+                            Object.keys(orderCounts).forEach(status => {
+                                const count = orderCounts[status];
+                                const percentage = Math.round((count / totalOrders) * 100);
+                                const color = statusColors[status] || 'secondary';
+                            %>
+                            <li class="list-group-item px-0">
+                                <div class="d-flex justify-content-between align-items-center">
+                                    <div>
+                                        <span class="badge bg-<%= color %> me-2"><%= status %></span>
+                                        <span class="text-muted"><%= count %> orders</span>
+                                    </div>
+                                    <span class="badge bg-light text-dark"><%= percentage %>%</span>
+                                </div>
+                                <div class="progress mt-2" style="height: 5px;">
+                                    <div class="progress-bar bg-<%= color %>" role="progressbar" style="width: <%= percentage %>%"></div>
+                                </div>
+                            </li>
+                            <% }); %>
+                        </ul>
+                    </div>
+                </div>
+            </div>
+            
+            <div class="col-md-8">
+                <div class="card dashboard-card">
+                    <div class="card-header bg-transparent">
+                        <h5 class="mb-0">Top Products</h5>
+                    </div>
+                    <div class="table-responsive">
+                        <table class="table table-hover mb-0">
+                            <thead class="table-light">
+                                <tr>
+                                    <th>Product</th>
+                                    <th class="text-center">Units Sold</th>
+                                    <th class="text-end">Revenue</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                <% topProducts.forEach((product, index) => { %>
+                                <tr>
+                                    <td>
+                                        <div class="d-flex align-items-center">
+                                            <span class="text-muted me-2"><%= index + 1 %>.</span>
+                                            <%= product.productName %>
+                                        </div>
+                                    </td>
+                                    <td class="text-center"><%= product.totalSales.toLocaleString() %></td>
+                                    <td class="text-end">$<%= product.revenue.toLocaleString(undefined, {minimumFractionDigits: 2, maximumFractionDigits: 2}) %></td>
+                                </tr>
+                                <% }); %>
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Recent Orders -->
+        <div class="row mt-4">
+            <div class="col-12">
+                <div class="card dashboard-card">
+                    <div class="card-header bg-transparent d-flex justify-content-between align-items-center">
+                        <h5 class="mb-0">Recent Orders</h5>
+                        <a href="/admin/orders" class="btn btn-sm btn-primary">View All</a>
+                    </div>
+                    <div class="table-responsive">
+                        <table class="table table-hover mb-0">
+                            <thead class="table-light">
+                                <tr>
+                                    <th>Order ID</th>
+                                    <th>Customer</th>
+                                    <th>Date</th>
+                                    <th>Amount</th>
+                                    <th>Payment</th>
+                                    <th>Status</th>
+                                    <th class="text-end">Action</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                <% recentOrders.forEach(order => { %>
+                                <tr>
+                                    <td><a href="/admin/orders/<%= order._id %>" class="fw-bold text-decoration-none"><%= order.orderId %></a></td>
+                                    <td>
+                                        <% if (order.userId) { %>
+                                            <%= order.userId.username %>
+                                            <div class="small text-muted"><%= order.userId.email %></div>
+                                        <% } else { %>
+                                            Guest
+                                        <% } %>
+                                    </td>
+                                    <td><%= new Date(order.createdAt).toLocaleDateString() %></td>
+                                    <td>$<%= order.totalAmount.toLocaleString(undefined, {minimumFractionDigits: 2, maximumFractionDigits: 2}) %></td>
+                                    <td><span class="badge bg-light text-dark"><%= order.paymentMethod %></span></td>
+                                    <td>
+                                        <% const statusBadgeColor = statusColors[order.orderStatus] || 'secondary'; %>
+                                        <span class="badge bg-<%= statusBadgeColor %>"><%= order.orderStatus %></span>
+                                    </td>
+                                    <td class="text-end">
+                                        <a href="/admin/orders/<%= order._id %>" class="btn btn-sm btn-outline-primary">View</a>
+                                    </td>
+                                </tr>
+                                <% }); %>
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+            </div>
+        </div>
     </div>
 
-    <div class="pagination-area mt-30 mb-50">
-        <nav aria-label="Page navigation example">
-            <ul class="pagination justify-content-start">
-                <li class="page-item active"><a class="page-link" href="#">01</a></li>
-                <li class="page-item">
-                    <a class="page-link" href="#"><i class="material-icons md-chevron_right"></i></a>
-                </li>
-            </ul>
-        </nav>
-    </div>
-</section>
-<!-- NoConflict jQuery -->
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+    <script>
+        // Wait for DOM to be ready
+        document.addEventListener('DOMContentLoaded', function() {
+            // Chart colors
+            const colors = {
+                primary: '#0d6efd',
+                info: '#0dcaf0',
+                success: '#198754',
+                warning: '#ffc107',
+                danger: '#dc3545',
+                light: '#f8f9fa',
+                dark: '#212529',
+                primaryLight: 'rgba(13, 110, 253, 0.2)',
+                infoLight: 'rgba(13, 202, 240, 0.2)',
+                successLight: 'rgba(25, 135, 84, 0.2)',
+            };
 
-<script src="asset/js/vendors/jquery-3.6.0.min.js"></script>
-
-
-
-<script src="asset/js/vendors/chart.js"></script>
-
-<script src="asset/js/main.js?v=1.1" type="text/javascript"></script>
-<script src="asset/js/custom-chart.js" type="text/javascript"></script>
+            // Monthly data from backend
+            const monthlyData = <%- JSON.stringify(monthlyData) %>;
+            
+            // Common chart options
+            const commonOptions = {
+                responsive: true,
+                maintainAspectRatio: false,
+                plugins: {
+                    legend: {
+                        display: false,
+                    },
+                    tooltip: {
+                        mode: 'index',
+                        intersect: false,
+                        callbacks: {
+                            label: function(context) {
+                                let label = context.dataset.label || '';
+                                if (label) {
+                                    label += ': ';
+                                }
+                                if (context.dataset.yAxisID === 'y1') {
+                                    label += new Intl.NumberFormat('en-US', { 
+                                        style: 'currency', 
+                                        currency: 'USD' 
+                                    }).format(context.parsed.y);
+                                } else {
+                                    label += context.parsed.y;
+                                }
+                                return label;
+                            }
+                        }
+                    }
+                },
+                scales: {
+                    y: {
+                        beginAtZero: true,
+                        ticks: {
+                            callback: function(value) {
+                                return value.toLocaleString();
+                            }
+                        }
+                    }
+                }
+            };
+            
+            // Revenue Chart
+            const revenueCtx = document.getElementById('revenueChart').getContext('2d');
+            const revenueChart = new Chart(revenueCtx, {
+                type: 'bar',
+                data: {
+                    labels: monthlyData.labels,
+                    datasets: [{
+                        label: 'Revenue',
+                        data: monthlyData.revenue,
+                        backgroundColor: colors.primaryLight,
+                        borderColor: colors.primary,
+                        borderWidth: 2
+                    }]
+                },
+                options: {
+                    ...commonOptions,
+                    scales: {
+                        y: {
+                            beginAtZero: true,
+                            ticks: {
+                                callback: function(value) {
+                                    return '$' + value.toLocaleString();
+                                }
+                            }
+                        }
+                    }
+                }
+            });
+            
+            // Orders Chart
+            const ordersCtx = document.getElementById('ordersChart').getContext('2d');
+            const ordersChart = new Chart(ordersCtx, {
+                type: 'line',
+                data: {
+                    labels: monthlyData.labels,
+                    datasets: [{
+                        label: 'Orders',
+                        data: monthlyData.orders,
+                        backgroundColor: colors.infoLight,
+                        borderColor: colors.info,
+                        borderWidth: 2,
+                        tension: 0.3,
+                        fill: true,
+                        pointBackgroundColor: colors.info
+                    }]
+                },
+                options: commonOptions
+            });
+            
+            // Average Order Value Chart
+            const aovCtx = document.getElementById('aovChart').getContext('2d');
+            const aovChart = new Chart(aovCtx, {
+                type: 'line',
+                data: {
+                    labels: monthlyData.labels,
+                    datasets: [{
+                        label: 'Avg. Order Value',
+                        data: monthlyData.avgOrderValue,
+                        backgroundColor: colors.successLight,
+                        borderColor: colors.success,
+                        borderWidth: 2,
+                        tension: 0.2,
+                        fill: false,
+                        pointBackgroundColor: colors.success
+                    }]
+                },
+                options: {
+                    ...commonOptions,
+                    scales: {
+                        y: {
+                            beginAtZero: true,
+                            ticks: {
+                                callback: function(value) {
+                                    return '$' + value.toLocaleString();
+                                }
+                            }
+                        }
+                    }
+                }
+            });
+            
+            // Payment Methods Chart
+            const paymentData = <%- JSON.stringify(paymentMethodData) %>;
+            const pmCtx = document.getElementById('paymentMethodChart').getContext('2d');
+            const pmChart = new Chart(pmCtx, {
+                type: 'doughnut',
+                data: {
+                    labels: paymentData.labels,
+                    datasets: [{
+                        data: paymentData.values,
+                        backgroundColor: [
+                            colors.primary,
+                            colors.success, 
+                            colors.warning,
+                            colors.info,
+                            colors.danger
+                        ],
+                        borderWidth: 2,
+                        borderColor: colors.light
+                    }]
+                },
+                options: {
+                    responsive: true,
+                    maintainAspectRatio: false,
+                    plugins: {
+                        legend: {
+                            position: 'bottom',
+                            labels: {
+                                padding: 20,
+                                boxWidth: 12
+                            }
+                        },
+                        tooltip: {
+                            callbacks: {
+                                label: function(context) {
+                                    const label = context.label || '';
+                                    const value = context.formattedValue;
+                                    const dataset = context.dataset;
+                                    const total = dataset.data.reduce((acc, data) => acc + data, 0);
+                                    const percentage = Math.round((context.raw / total) * 100);
+                                    return `${label}: ${value} (${percentage}%)`;
+                                }
+                            }
+                        }
+                    },
+                    cutout: '70%'
+                }
+            });
+            
+            // Tab switching for charts
+            const tabElements = document.querySelectorAll('#chartTabs button');
+            tabElements.forEach(tab => {
+                tab.addEventListener('click', function(event) {
+                    event.preventDefault();
+                    
+                    // Remove active class from all tabs
+                    tabElements.forEach(t => {
+                        t.classList.remove('active');
+                        const target = document.querySelector(t.getAttribute('data-bs-target'));
+                        target.classList.remove('show', 'active');
+                    });
+                    
+                    // Add active class to clicked tab
+                    this.classList.add('active');
+                    const target = document.querySelector(this.getAttribute('data-bs-target'));
+                    target.classList.add('show', 'active');
+                });
+            });
+        });
+        
+        // Add automatic refreshing of dashboard data
+        function refreshDashboard() {
+            fetch('/admin/dashboard?json=true')
+                .then(response => response.json())
+                .then(data => {
+                    console.log('Dashboard refreshed:', data);
+                    // You could update the UI elements here with the new data
+                    // without requiring a full page reload
+                })
+                .catch(error => console.error('Error refreshing dashboard:', error));
+        }
+        
+        // Refresh dashboard data every 5 minutes
+        setInterval(refreshDashboard, 5 * 60 * 1000);
+    </script>
 </body>
-
 </html>
-
-
- 

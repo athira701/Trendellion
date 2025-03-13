@@ -87,7 +87,10 @@ router.get('/editOffer',offerController.loadEditOffer)
 router.post('/editOfferr',offerController.editOffer)
 
 //Sales management
-// router.get('/salesReport',salesController.getSalesReport)
+router.get('/salesReport',salesController.getSalesReport)
+router.post('/generate-sales-report', salesController.generateSalesReport)
+router.post('/export-sales-pdf', salesController.exportSalesPDF);
+router.post('/export-sales-excel', salesController.exportSalesExcel);
 
 
 

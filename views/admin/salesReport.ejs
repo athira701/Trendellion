@@ -1,3 +1,4 @@
+<%- include('../partials/admin/header1') %>
 <!DOCTYPE html>
 <html lang="en">
 <head>
@@ -167,9 +168,9 @@
             color: #2d3436;
         }
         .report-container {
-      padding: 20px;
-      max-width: 1200px;
-      margin-left: 300px;
+    
+      max-width: 1000px;
+      margin-left: 100px;
       margin-top: 100px;
     }
 
@@ -365,10 +366,10 @@
 </style>
 <body>
     <header class="header">
-        <div class="logo">Admin Dashboard</div>
+        
         <a href="/admin/logout" class="logout-btn">Logout</a>
     </header>
-    <%- include('./partials/sidebar') %>
+    
 
  
  
@@ -458,24 +459,29 @@
 
   <script>
  // sales-report.js
-document.addEventListener('DOMContentLoaded', function() {
+ document.addEventListener('DOMContentLoaded', function() {
     const reportForm = document.getElementById('reportForm');
     const reportType = document.getElementById('reportType');
     const customDateRange = document.getElementById('customDateRange');
     const salesTable = document.querySelector('.sales-table tbody');
     
-    // Initialize date inputs with current week
-    const today = new Date();
-    const startOfWeek = new Date(today.setDate(today.getDate() - today.getDay()));
-    const endOfWeek = new Date(today.setDate(today.getDate() + 6));
-    
-    document.getElementById('startDate').value = startOfWeek.toISOString().split('T')[0];
-    document.getElementById('endDate').value = endOfWeek.toISOString().split('T')[0];
-
+    // Show/hide date range fields based on report type
     reportType.addEventListener('change', function() {
-        customDateRange.style.display = this.value === 'custom' ? 'block' : 'none';
+        customDateRange.style.display = this.value === 'custom' ? 'flex' : 'none';
     });
-
+    
+    // Initialize date inputs with current month
+    const today = new Date();
+    const firstDayOfMonth = new Date(today.getFullYear(), today.getMonth(), 1);
+    const lastDayOfMonth = new Date(today.getFullYear(), today.getMonth() + 1, 0);
+    
+    document.getElementById('startDate').value = firstDayOfMonth.toISOString().split('T')[0];
+    document.getElementById('endDate').value = lastDayOfMonth.toISOString().split('T')[0];
+    
+    // Initial display setting
+    customDateRange.style.display = reportType.value === 'custom' ? 'flex' : 'none';
+    
+    // Submit report form
     reportForm.addEventListener('submit', async function(e) {
         e.preventDefault();
         
@@ -484,7 +490,7 @@ document.addEventListener('DOMContentLoaded', function() {
             startDate: document.getElementById('startDate').value,
             endDate: document.getElementById('endDate').value
         };
-
+        
         try {
             const response = await fetch('/admin/generate-sales-report', {
                 method: 'POST',
@@ -493,9 +499,9 @@ document.addEventListener('DOMContentLoaded', function() {
                 },
                 body: JSON.stringify(formData)
             });
-
+            
             const data = await response.json();
-
+            
             if (data.status === 'success') {
                 updateSalesReport(data.data);
             } else {
@@ -505,7 +511,8 @@ document.addEventListener('DOMContentLoaded', function() {
             alert('Error generating report: ' + error.message);
         }
     });
-
+    
+    // Update the sales report with data
     function updateSalesReport(data) {
         // Update summary statistics
         document.querySelector('.stat-card:nth-child(1) .value').textContent = 
@@ -513,58 +520,57 @@ document.addEventListener('DOMContentLoaded', function() {
         document.querySelector('.stat-card:nth-child(2) .value').textContent = 
             data.summary.totalOrders;
         document.querySelector('.stat-card:nth-child(3) .value').textContent = 
-            `${data.summary.totalDiscounts.toFixed(2)}`;
-
+           ` ₹${data.summary.totalDiscounts.toFixed(2)}`;
+        
         // Update table
         salesTable.innerHTML = '';
         data.orders.forEach(order => {
             const row = document.createElement('tr');
             row.innerHTML = `
-                <td> ${new Date(order.date).toLocaleDateString()}</td>
+                <td>${new Date(order.date).toLocaleDateString()}</td>
                 <td>${order.orderId}</td>
                 <td>₹${order.amount.toFixed(2)}</td>
-                <td> ₹${order.discount.toFixed(0)}</td>
-                <td> ${order.couponCode ? order.couponCode : "No coupon used"}</td>
-                <td> ₹${order.finalAmount.toFixed(0)}</td>
+                <td>₹${order.discount.toFixed(2)}</td>
+                <td>${order.couponCode || "No coupon used"}</td>
+                <td>₹${order.finalAmount.toFixed(2)}</td>
             `;
             salesTable.appendChild(row);
         });
     }
-
+    
     // Export functionality
-    document.querySelector('button:nth-child(1)').addEventListener('click', exportPDF);
-    document.querySelector('button:nth-child(2)').addEventListener('click', exportExcel);
-
+    document.querySelector('.header-buttons button:nth-child(1)').addEventListener('click', exportPDF);
+    document.querySelector('.header-buttons button:nth-child(2)').addEventListener('click', exportExcel);
+    
     async function exportPDF() {
-    try {
-        const response = await fetch('/admin/export-sales-pdf', {
-            method: 'POST',
-            headers: { 'Content-Type': 'application/json' },
-            body: JSON.stringify({
-                reportType: document.getElementById('reportType').value,
-                startDate: document.getElementById('startDate').value,
-                endDate: document.getElementById('endDate').value
-            })
-        });
-
-        if (!response.ok) throw new Error('Failed to generate PDF');
-
-        const blob = await response.blob();
-        const url = window.URL.createObjectURL(blob);
-        const a = document.createElement('a');
-        a.href = url;
-        a.download = 'sales-report.pdf';
-        document.body.appendChild(a);
-        a.click();
-        document.body.removeChild(a);
-        window.URL.revokeObjectURL(url);
-    } catch (error) {
-        console.error('Error exporting PDF:', error);
-        alert('Error exporting PDF: ' + error.message);
+        try {
+            const response = await fetch('/admin/export-sales-pdf', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({
+                    reportType: reportType.value,
+                    startDate: document.getElementById('startDate').value,
+                    endDate: document.getElementById('endDate').value
+                })
+            });
+            
+            if (!response.ok) throw new Error('Failed to generate PDF');
+            
+            const blob = await response.blob();
+            const url = window.URL.createObjectURL(blob);
+            const a = document.createElement('a');
+            a.href = url;
+            a.download = `sales-report-${new Date().toISOString().split('T')[0]}.pdf`;
+            document.body.appendChild(a);
+            a.click();
+            document.body.removeChild(a);
+            window.URL.revokeObjectURL(url);
+        } catch (error) {
+            console.error('Error exporting PDF:', error);
+            alert('Error exporting PDF: ' + error.message);
+        }
     }
-}
-
-
+    
     async function exportExcel() {
         try {
             const response = await fetch('/admin/export-sales-excel', {
@@ -578,21 +584,26 @@ document.addEventListener('DOMContentLoaded', function() {
                     endDate: document.getElementById('endDate').value
                 })
             });
-
-            if (response.ok) {
-                const blob = await response.blob();
-                const url = window.URL.createObjectURL(blob);
-                const a = document.createElement('a');
-                a.href = url;
-                a.download = 'sales-report.xlsx';
-                a.click();
-                window.URL.revokeObjectURL(url);
-            }
+            
+            if (!response.ok) throw new Error('Failed to generate Excel');
+            
+            const blob = await response.blob();
+            const url = window.URL.createObjectURL(blob);
+            const a = document.createElement('a');
+            a.href = url;
+            a.download = `sales-report-${new Date().toISOString().split('T')[0]}.xlsx`;
+            document.body.appendChild(a);
+            a.click();
+            document.body.removeChild(a);
+            window.URL.revokeObjectURL(url);
         } catch (error) {
-            console.log('error while geting ',error)
+            console.error('Error exporting Excel:', error);
             alert('Error exporting Excel: ' + error.message);
         }
     }
+    
+    // Generate a report on page load
+    reportForm.dispatchEvent(new Event('submit'));
 });
     
   </script>

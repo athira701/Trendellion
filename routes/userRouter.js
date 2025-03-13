@@ -118,6 +118,8 @@ router.post('/verify-wallet-payment',walletController.verifyPayment)
 router.post('/process-wallet-payment', walletController.processWalletPayment)
 //router.get('/walletDetails', walletController.getWalletDetails)
 
+router.get('/download-invoice/:id',userController.downloadInvoice)
+
 
 
 module.exports = router
