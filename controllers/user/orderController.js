@@ -11,37 +11,33 @@ const placeOrder = async (req, res) => {
     const { addressId, couponCode, paymentMethod } = req.body;
     const userId = req.session.user._id;
     console.log("USERID:", userId);
-    //const wallet = await Wallet.findOne({userId:userId})
-    // Validate user session
+
     if (!userId) {
       return res
         .status(401)
         .json({ success: false, message: "Please login to continue" });
     }
 
-    // Get cart and user data
     const cart = await Cart.findOne({ userId }).populate("item.productId");
     const user = await User.findById(userId);
     const userAddress = await Address.findOne({ userId });
+    console.log("userAddress:",userAddress);
 
-    // Validate cart
     if (!cart || !cart.item || cart.item.length === 0) {
       return res
         .status(400)
         .json({ success: false, message: "Your cart is empty" });
     }
 
-    // Get default address
     const defaultAddress = userAddress.address.find(
       (addr) => addr.isDefault === true
     );
+    console.log("defaultAddress:",defaultAddress)
     if (!defaultAddress) {
-      return res
-        .status(400)
-        .json({
-          success: false,
-          message: "Please set a default delivery address",
-        });
+      return res.status(400).json({
+        success: false,
+        message: "Please set a default delivery address",
+      });
     }
 
     // Validate payment method
@@ -58,12 +54,10 @@ const placeOrder = async (req, res) => {
       const product = item.productId;
       const sizeIndex = product.stock.findIndex((s) => s.size === item.size);
       if (product.stock[sizeIndex].quantity < item.quantity) {
-        return res
-          .status(400)
-          .json({
-            success: false,
-            message: `Insufficient stock for ${item.name}`,
-          });
+        return res.status(400).json({
+          success: false,
+          message: `Insufficient stock for ${item.name}`,
+        });
       }
 
       product.stock[sizeIndex].quantity -= item.quantity;
@@ -130,19 +124,17 @@ const placeOrder = async (req, res) => {
     });
   } catch (error) {
     console.log("Order placement error:", error);
-    res
-      .status(500)
-      .json({
-        success: false,
-        message: error.message || "Failed to place order",
-      });
+    res.status(500).json({
+      success: false,
+      message: error.message || "Failed to place order",
+    });
   }
 };
 
 const orderPlacedpage = async (req, res) => {
   try {
     const orderId = req.session.orderId;
-    console.log("OrderId:", orderId); // or req.params depending on your route setup
+    console.log("OrderId:", orderId); // or req.params depending on the route setup
 
     delete req.session.orderId;
     res.render("user/orderPlaced", { orderId });
@@ -155,7 +147,7 @@ const getOrderPage = async (req, res) => {
   try {
     const userId = req.session.user._id;
     const page = parseInt(req.query.page) || 1;
-    const limit = 10; // Orders per page
+    const limit = 10; 
     const searchQuery = req.query.search || "";
 
     const filter = { userId };
@@ -166,13 +158,13 @@ const getOrderPage = async (req, res) => {
     const totalOrders = await Order.countDocuments(filter);
     const totalPages = Math.ceil(totalOrders / limit);
 
-    // Fetch orders with populated product details
+    
     const orders = await Order.find(filter)
       .populate({
         path: "orderedItems.product",
-        select: "name price", // Select the fields you need
+        select: "name price", 
       })
-      .sort({ createdAt: -1 }) // Most recent orders first
+      .sort({ createdAt: -1 }) 
       .skip((page - 1) * limit)
       .limit(limit);
     console.log("Orders:", orders);
@@ -190,11 +182,12 @@ const getOrderPage = async (req, res) => {
     res.status(500).send("Error loading orders page");
   }
 };
+
 const getOrderDetails = async (req, res) => {
   try {
     const orderId = req.params.orderId;
 
-    // Fetch the order from the database
+    
     const order = await Order.findOne({ orderId: orderId })
       .populate("userId")
       .populate("orderedItems.product");
@@ -225,7 +218,7 @@ const getOrderDetails = async (req, res) => {
     };
     console.log("orderData:", orderData);
 
-    // Render the orderDetails.ejs template with the order data
+   
     res.render("user/orderDetails", { order: orderData });
   } catch (error) {
     console.error("Error fetching order details:", error);
@@ -247,7 +240,7 @@ const getOrderDates = (order) => {
 const cancelOrderItem = async (req, res) => {
   try {
     const orderId = req.params.orderId;
-    // const productId = req.params.id
+    
 
     const order = await Order.findOne({ orderId: orderId });
     if (!order) {
@@ -339,12 +332,12 @@ const returnOrderItem = async (req, res) => {
     if (order.orderStatus.toUpperCase() !== "DELIVERED") {
       return res.status(400).json({
         message: "Only delivered orders can be returned",
-        currentStatus: order.orderStatus, // Add current status to response for debugging
+        currentStatus: order.orderStatus, 
       });
     }
 
     // Check return time limit (30 days)
-    const deliveryDate = order.updatedAt; // Assuming updatedAt as delivery date
+    const deliveryDate = order.updatedAt; 
     const daysSinceDelivery = Math.floor(
       (Date.now() - deliveryDate) / (1000 * 60 * 60 * 24)
     );
@@ -354,11 +347,11 @@ const returnOrderItem = async (req, res) => {
         .json({ message: "Return period has expired (30 days limit)" });
     }
 
-    // Update order status and store return information
+    
     order.orderStatus = "RETURN REQUESTED";
     order.returnReason = returnReason || "Not specified";
-    order.returnDetails = returnDetails || ""; // Store additional details if provided
-    order.returnRequestedAt = new Date(); // Add timestamp for return request
+    order.returnDetails = returnDetails || ""; 
+    order.returnRequestedAt = new Date(); 
 
     await order.save();
 

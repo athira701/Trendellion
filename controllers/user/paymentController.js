@@ -1,4 +1,7 @@
+const Product = require('../../models/productSchema')
+const Cart = require('../../models/cartSchema')
 const Order = require('../../models/orderSchema')
+const Coupon = require('../../models/couponSchema')
 const Razorpay = require('razorpay')
 const crypto = require('crypto')
 require('dotenv').config()
@@ -8,7 +11,7 @@ const razorpay = new Razorpay({
     key_secret: process.env.RAZORPAY_KEY_SECRET,
   });
 
-//I am keeping this here for creating a payment order without all validation(just for testing)  
+//I am keeping this here for creating a payment order without any validation(just for testing purpose)  
  const createOrder = async (req, res) => {
     try {
       const { amount } = req.body;
@@ -32,6 +35,11 @@ const razorpay = new Razorpay({
 
 
 
+
+
+
+
 module.exports = {
-    createOrder
+    createOrder,
+   
 }
