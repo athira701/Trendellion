@@ -25,7 +25,14 @@ const pageNotFound = async (req,res) =>{
 
 const loadHomePage = async (req,res)=>{
     try {
-      return res.render("user/firstHome")
+        const products = await Product.find({isBlocked:false,status:'Available'});
+        const category=await Category.find({});
+        //const user = req.session.user || null
+        //console.log("Logged user:",user);
+
+
+         res.render('user/home1',
+            {products,category})
     } catch (error) {
      console.log("not found")
      res.status(500).send("server error")

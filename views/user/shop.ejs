@@ -230,9 +230,15 @@
                         <!-- Add to Cart Button -->
                         <div class="p-4">
                             <input type="hidden" name="quantity" id="quantity-input" value="1">
+                            <%if(locals.user){%>
                             <button class="add-to-cart-button w-full bg-pink-500 text-white py-2 rounded hover:bg-gray-800 transition-colors"  data-product-id="<%= product._id %>">
                                 Add to Cart
                             </button>
+                            <%}else{%>
+                                <button onclick="showLoginAlert()" class="add-to-cart-button w-full bg-pink-500 text-white py-2 rounded hover:bg-gray-800 transition-colors"  data-product-id="<%= product._id %>">
+                                    Add to Cart
+                                </button>
+                                <%}%>    
                         </div>
                     </div>
                     <% count++; %>
@@ -267,7 +273,16 @@
         <% } %>
 </div>
         
-
+<script>
+    function showLoginAlert() {
+        Swal.fire({
+            title: 'Login Required',
+            text: 'Please login first',
+            icon: 'info',
+            confirmButtonText: 'OK'
+        })
+    }
+    </script>
    
 
 <script>
