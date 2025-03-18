@@ -391,8 +391,17 @@
                     
                     <div class="payment-methods mt-3">
                         <div class="form-check mb-2">
-                            <input class="form-check-input" type="radio" name="paymentMethod" id="cod" value="cod">
-                            <label class="form-check-label" for="cod">Cash on Delivery</label>
+                          <% if ( cart.cartTotal >1000) { %>
+                            <input class="form-check-input" type="radio" name="paymentMethod" id="cod" value="cod" disabled>
+                            <label class="form-check-label" for="cod">
+                                Cash on Delivery
+                                <span style="color: var(--danger-color);">(Not applicable for orders above 1000)</span>
+                            </label>
+                        <% } else { %>
+                             <input class="form-check-input" type="radio" name="paymentMethod" id="cod" value="cod">
+
+                            <label class="form-check-label" for="cod"> Cash on Delivery</label>
+                        <% } %>
                         </div>
                         <div class="form-check mb-2">
                             <input class="form-check-input" type="radio" name="paymentMethod" id="online" value="online">
@@ -469,9 +478,9 @@
                         headers: { 'Content-Type': 'application/json' },
                         body: JSON.stringify({ 
                             
-                            amount: <%= totalAmount %>  
+                            amount: <%= totalAmount %>,
+                            paymentMethod: 'Wallet'
                         }),
-                        credentials: 'same-origin'
                     });
 
                     const result = await response.json();

@@ -73,10 +73,20 @@ const addOffer = async (req, res) => {
         const categories = await Category.find({ isBlocked: false, isDeleted: false });
 
        
-        if (!offerType || !discount || !startDate || !endDate) {
+        if (!offerName || !offerType || !discount || !startDate || !endDate) {
             return res.status(400).json({
                 success: false,
                 message: 'Missing required fields'
+            });
+        }
+
+        const existingOfferWithName = await Offer.findOne({ 
+            offerName: { $regex: new RegExp('^' + offerName + '$', 'i') } 
+        });
+        if (existingOfferWithName) {
+            return res.status(400).json({
+                success: false,
+                message: 'An offer with this name already exists'
             });
         }
 
@@ -91,6 +101,16 @@ const addOffer = async (req, res) => {
         
         const start = new Date(startDate);
         const end = new Date(endDate);
+        const today = new Date();
+        today.setHours(0, 0, 0, 0);
+        
+        if (start < today) {
+            return res.status(400).json({
+                success: false,
+                message: 'Start date cannot be in the past'
+            });
+        }
+        
         if (end <= start) {
             return res.status(400).json({
                 success: false,
@@ -139,6 +159,20 @@ const addOffer = async (req, res) => {
                     message: 'Cannot create offer for a blocked product'
                 });
             }
+
+            const existingProductOffer = await Offer.findOne({
+                offerType: 'product',
+                productId: productId,
+                status: true,
+                endDate: { $gt: new Date() }
+            });
+            
+            if (existingProductOffer) {
+                return res.status(400).json({
+                    success: false,
+                    message: 'This product already has an active offer'
+                });
+            }
             
             offerData.productId = productId;
             
@@ -177,6 +211,20 @@ const addOffer = async (req, res) => {
                 return res.status(400).json({
                     success: false,
                     message: 'Cannot create offer for a blocked or deleted category'
+                });
+            }
+
+            const existingCategoryOffer = await Offer.findOne({
+                offerType: 'category',
+                categoryId: categoryId,
+                status: true,
+                endDate: { $gt: new Date() }
+            });
+            
+            if (existingCategoryOffer) {
+                return res.status(400).json({
+                    success: false,
+                    message: 'This category already has an active offer'
                 });
             }
             

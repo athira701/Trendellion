@@ -134,13 +134,13 @@
                     <div class="invalid-feedback"></div>
                 </div>
             </div>
-            <div class="col-md-6">
+            <!-- <div class="col-md-6">
                 <div class="mb-3">
                     <label for="maxRedemptions" class="form-label">Max Redemptions (Optional)</label>
                     <input type="number" class="form-control" id="maxRedemptions" name="maxRedemptions" min="1">
                     <div class="invalid-feedback"></div>
                 </div>
-            </div>
+            </div> -->
         </div>
         <div class="row">
             <div class="col-md-6">
@@ -208,11 +208,6 @@
 
 <script>
 // Utility functions
-const isValidDate = (date) => {
-    const selectedDate = new Date(date);
-    return !isNaN(selectedDate.getTime());
-};
-
 document.addEventListener('DOMContentLoaded', function() {
     const form = document.getElementById('addOfferForm');
     const offerTypeSelect = document.getElementById('offerType');
@@ -229,21 +224,37 @@ document.addEventListener('DOMContentLoaded', function() {
         offerType: document.getElementById('offerType'),
         productId: document.getElementById('productId'),
         categoryId: document.getElementById('categoryId'),
-        referralCode: document.getElementById('referralCode'),
-        maxRedemptions: document.getElementById('maxRedemptions')
+        referralCode: document.getElementById('referralCode')
     };
 
-    // Add input constraints
-    inputs.offerName.addEventListener('input', function(e) {
+    // Utility functions
+    const isValidDate = (date) => {
+        const selectedDate = new Date(date);
+        return !isNaN(selectedDate.getTime());
+    };
+
+    // Only validate fields after user interaction
+    const touchedFields = new Set();
+
+    // Add input constraints with proper blur/change handlers
+    inputs.offerName.addEventListener('blur', function() {
+        touchedFields.add('offerName');
         validateField('offerName');
     });
-
-    inputs.discount.addEventListener('input', function(e) {
-        validateField('discount');
+    inputs.offerName.addEventListener('input', function() {
+        if (touchedFields.has('offerName')) {
+            validateField('offerName');
+        }
     });
 
-    inputs.maxRedemptions.addEventListener('input', function(e) {
-        validateField('maxRedemptions');
+    inputs.discount.addEventListener('blur', function() {
+        touchedFields.add('discount');
+        validateField('discount');
+    });
+    inputs.discount.addEventListener('input', function() {
+        if (touchedFields.has('discount')) {
+            validateField('discount');
+        }
     });
 
     // Dynamic min dates for date inputs
@@ -252,15 +263,19 @@ document.addEventListener('DOMContentLoaded', function() {
     inputs.endDate.setAttribute('min', today);
     
     inputs.startDate.addEventListener('change', function() {
+        touchedFields.add('startDate');
         validateField('startDate');
         // Update min date for end date based on start date
         if (this.value) {
             inputs.endDate.setAttribute('min', this.value);
-            validateField('endDate');
+            if (touchedFields.has('endDate')) {
+                validateField('endDate');
+            }
         }
     });
     
     inputs.endDate.addEventListener('change', function() {
+        touchedFields.add('endDate');
         validateField('endDate');
     });
 
@@ -281,15 +296,6 @@ document.addEventListener('DOMContentLoaded', function() {
                 if (isNaN(discount)) return 'Discount must be a number';
                 if (discount < 0) return 'Discount must be at least 0';
                 if (discount > 100) return 'Discount cannot exceed 100%';
-                return '';
-            }
-        },
-        maxRedemptions: {
-            validate: (value) => {
-                if (!value) return ''; // Optional field
-                const maxRedemptions = parseInt(value);
-                if (isNaN(maxRedemptions)) return 'Max redemptions must be a number';
-                if (maxRedemptions < 1) return 'Max redemptions must be at least 1';
                 return '';
             }
         },
@@ -325,7 +331,7 @@ document.addEventListener('DOMContentLoaded', function() {
         },
         productId: {
             validate: (value, formData) => {
-                if (formData.offerType === 'product' && (!value || value.trim() === '')) {
+                if (formData.offerType === 'product' && (!value || value === '')) {
                     return 'Product is required for product-type offers';
                 }
                 return '';
@@ -333,7 +339,7 @@ document.addEventListener('DOMContentLoaded', function() {
         },
         categoryId: {
             validate: (value, formData) => {
-                if (formData.offerType === 'category' && (!value || value.trim() === '')) {
+                if (formData.offerType === 'category' && (!value || value === '')) {
                     return 'Category is required for category-type offers';
                 }
                 return '';
@@ -375,8 +381,11 @@ document.addEventListener('DOMContentLoaded', function() {
         }
     }
 
-    // Offer type change handler
+    // Offer type change handler with proper validation timing
     offerTypeSelect.addEventListener('change', function() {
+        touchedFields.add('offerType');
+        validateField('offerType');
+        
         const selectedType = this.value;
         
         // Reset and hide all option selects/inputs
@@ -387,34 +396,69 @@ document.addEventListener('DOMContentLoaded', function() {
         inputs.productId.required = false;
         inputs.categoryId.required = false;
         inputs.referralCode.required = false;
+        
+        // Reset validation states when switching types
+        inputs.productId.classList.remove('is-valid', 'is-invalid');
+        inputs.categoryId.classList.remove('is-valid', 'is-invalid');
+        inputs.referralCode.classList.remove('is-valid', 'is-invalid');
+        
+        inputs.productId.nextElementSibling.textContent = '';
+        inputs.categoryId.nextElementSibling.textContent = '';
+        inputs.referralCode.nextElementSibling.textContent = '';
 
         // Show relevant select based on type
         if (selectedType === 'product') {
             productSelect.style.display = 'block';
             inputs.productId.required = true;
+            
+            // Add event listeners for this field
+            inputs.productId.addEventListener('change', function() {
+                touchedFields.add('productId');
+                validateField('productId');
+            });
+            
         } else if (selectedType === 'category') {
             categorySelect.style.display = 'block';
             inputs.categoryId.required = true;
+            
+            // Add event listeners for this field
+            inputs.categoryId.addEventListener('change', function() {
+                touchedFields.add('categoryId');
+                validateField('categoryId');
+            });
+            
         } else if (selectedType === 'referral') {
             referralCodeInput.style.display = 'block';
             inputs.referralCode.required = true;
+            
+            // Add event listeners for this field
+            inputs.referralCode.addEventListener('blur', function() {
+                touchedFields.add('referralCode');
+                validateField('referralCode');
+            });
+            
+            inputs.referralCode.addEventListener('input', function() {
+                if (touchedFields.has('referralCode')) {
+                    validateField('referralCode');
+                }
+            });
         }
-        
-        // Validate the type-specific field
-        validateField('productId');
-        validateField('categoryId');
-        validateField('referralCode');
     });
 
     // Form submission handler
     form.addEventListener('submit', async function(e) {
         e.preventDefault();
 
+        // Mark all fields as touched for validation
+        Object.keys(inputs).forEach(fieldName => {
+            touchedFields.add(fieldName);
+        });
+
         // Validate all fields
         let isValid = true;
         
         // Always validate these fields
-        ['offerName', 'discount', 'startDate', 'endDate', 'offerType', 'maxRedemptions'].forEach(field => {
+        ['offerName', 'discount', 'startDate', 'endDate', 'offerType'].forEach(field => {
             if (!validateField(field)) isValid = false;
         });
         

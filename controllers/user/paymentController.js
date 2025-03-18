@@ -8,6 +8,7 @@ const razorpay = new Razorpay({
     key_secret: process.env.RAZORPAY_KEY_SECRET,
   });
 
+//I am keeping this here for creating a payment order without all validation(just for testing)  
  const createOrder = async (req, res) => {
     try {
       const { amount } = req.body;
@@ -27,6 +28,8 @@ const razorpay = new Razorpay({
     }
   
 }
+
+
 
 
 module.exports = {

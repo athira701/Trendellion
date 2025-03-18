@@ -68,15 +68,15 @@
                         <div class="row">
                             <div class="col-8">
                                 <div class="stat-label">Total Revenue</div>
-                                <div class="stat-value">$<%= totalRevenue.toLocaleString(undefined, {minimumFractionDigits: 2, maximumFractionDigits: 2}) %></div>
+                                <div class="stat-value">₹<%= totalRevenue.toLocaleString(undefined, {minimumFractionDigits: 2, maximumFractionDigits: 2}) %></div>
                             </div>
                             <div class="col-4 text-end">
-                                <i class="fas fa-dollar-sign card-icon text-primary"></i>
+                                <i class="fas fa-rupee-sign card-icon text-primary"></i>
                             </div>
                         </div>
                         <div class="mt-2">
                             <span class="text-success small"><i class="fas fa-circle"></i> Active</span>
-                            <span class="small text-muted ms-2">+$<%= pendingRevenue.toLocaleString(undefined, {minimumFractionDigits: 2, maximumFractionDigits: 2}) %> pending</span>
+                            <span class="small text-muted ms-2">+₹<%= pendingRevenue.toLocaleString(undefined, {minimumFractionDigits: 2, maximumFractionDigits: 2}) %> pending</span>
                         </div>
                     </div>
                 </div>
@@ -136,7 +136,7 @@
                         <div class="row">
                             <div class="col-8">
                                 <div class="stat-label">Refunds</div>
-                                <div class="stat-value">$<%= totalRefunds.toLocaleString(undefined, {minimumFractionDigits: 2, maximumFractionDigits: 2}) %></div>
+                                <div class="stat-value">₹<%= totalRefunds.toLocaleString(undefined, {minimumFractionDigits: 2, maximumFractionDigits: 2}) %></div>
                             </div>
                             <div class="col-4 text-end">
                                 <i class="fas fa-undo card-icon text-danger"></i>
@@ -263,7 +263,7 @@
                                         </div>
                                     </td>
                                     <td class="text-center"><%= product.totalSales.toLocaleString() %></td>
-                                    <td class="text-end">$<%= product.revenue.toLocaleString(undefined, {minimumFractionDigits: 2, maximumFractionDigits: 2}) %></td>
+                                    <td class="text-end">₹<%= product.revenue.toLocaleString(undefined, {minimumFractionDigits: 2, maximumFractionDigits: 2}) %></td>
                                 </tr>
                                 <% }); %>
                             </tbody>
@@ -307,7 +307,7 @@
                                         <% } %>
                                     </td>
                                     <td><%= new Date(order.createdAt).toLocaleDateString() %></td>
-                                    <td>$<%= order.totalAmount.toLocaleString(undefined, {minimumFractionDigits: 2, maximumFractionDigits: 2}) %></td>
+                                    <td>₹<%= order.totalAmount.toLocaleString(undefined, {minimumFractionDigits: 2, maximumFractionDigits: 2}) %></td>
                                     <td><span class="badge bg-light text-dark"><%= order.paymentMethod %></span></td>
                                     <td>
                                         <% const statusBadgeColor = statusColors[order.orderStatus] || 'secondary'; %>
@@ -365,9 +365,9 @@
                                     label += ': ';
                                 }
                                 if (context.dataset.yAxisID === 'y1') {
-                                    label += new Intl.NumberFormat('en-US', { 
+                                    label += new Intl.NumberFormat('en-IN', { 
                                         style: 'currency', 
-                                        currency: 'USD' 
+                                        currency: 'INR' 
                                     }).format(context.parsed.y);
                                 } else {
                                     label += context.parsed.y;
@@ -410,7 +410,7 @@
                             beginAtZero: true,
                             ticks: {
                                 callback: function(value) {
-                                    return '$' + value.toLocaleString();
+                                    return '₹' + value.toLocaleString('en-IN');
                                 }
                             }
                         }
@@ -462,7 +462,7 @@
                             beginAtZero: true,
                             ticks: {
                                 callback: function(value) {
-                                    return '$' + value.toLocaleString();
+                                    return '₹' + value.toLocaleString('en-IN');
                                 }
                             }
                         }

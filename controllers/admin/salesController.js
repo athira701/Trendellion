@@ -239,7 +239,7 @@ function generatePDFContent(doc, data, reportType, dateRange) {
     const colWidths = [80, 100, 80, 80, 100, 80];
     
     // Draw table header
-    doc.fontSize(10).font('Helvetica-Bold');
+    doc.fontSize(8).font('Helvetica-Bold');
     doc.text('Date', tableLeft, tableTop);
     doc.text('Order ID', tableLeft + colWidths[0], tableTop);
     doc.text('Amount', tableLeft + colWidths[0] + colWidths[1], tableTop);

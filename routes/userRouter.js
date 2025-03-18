@@ -99,6 +99,7 @@ router.post('/returnOrder/:orderId',orderController.returnOrderItem)
 //payment through Razorpay
 router.post('/createRazorpayOrder',paymentController.createOrder)
 
+
 //wishlist management
 router.post('/addToWishlist',wishlistController.addToWishlist)
 router.post('/removeFromWishlist',wishlistController.removeFromWishlist)

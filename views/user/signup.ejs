@@ -10,7 +10,7 @@
             margin: 0;
             padding: 0;
             font-family: Arial, sans-serif;
-            background-color: #1a1a1a;
+            background-color: #11111c;
             display: flex;
             justify-content: center;
             align-items: center;
@@ -139,14 +139,12 @@
     </style>
 </head>
 <body>
-    <div class="top-banner">
-        Sign up and get 20% off your first order. 
-        <a href="/signup">Sign Up Now</a>
-        <span class="close-button" onclick="closeBanner()">×</span>
-    </div>
+    
 
     <div class="container">
-        <h1>Trendellion</h1>
+        <div class="flex justify-between items-center mb-8">
+            <h1 class="text-2xl font-serif mx-auto cursor-pointer" onclick="window.location.href='/'">Trendellion</h1>
+        </div>
         <form id="signform" action="/signup" method="post">
             <div class="form-group">
                 <label>Name</label>
