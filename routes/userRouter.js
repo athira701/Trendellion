@@ -82,7 +82,7 @@ router.put('/address/default/:addressId', addressController.setDefaultAddress);
 //router.post("/setDefaultAddress/:addressId", addressController.setDefaultAddress);
 
 //Cart Management
-router.get('/cart',cartController.getCartPage)
+router.get('/cart',isUserAuthenticated,cartController.getCartPage)
 router.post('/addToCart/:id', cartController.addToCart)
 router.delete('/delete/:productId',cartController.deleteCartItem)
 router.post('/update', cartController.updateCart);

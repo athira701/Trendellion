@@ -5,53 +5,55 @@ const User = require("../../models/userSchema");
 
 const getCartPage = async (req, res) => {
   try {
-    console.log("helooooo");
-    const userId = req.session.user._id;
-
-    let cart = await Cart.findOne({ userId }).populate({
-      path: "item.productId",
-      select: "productName  productImage",
-    });
-    console.log("carttttt", cart);
-
-    if (!cart) {
-      return res.render("cart", { cart: [], cartTotal: 0 });
+    // Check if user is logged in
+    if (!req.session.user || !req.session.user._id) {
+      return res.redirect('/login'); // Redirect to login if no user session
     }
 
-    // Ensure cart and cart.item exist
-    const formattedCart =
-      cart && cart.item
-        ? cart.item.map((item) => {
-            const productImage = Array.isArray(item.productId.productImage)
-              ? item.productId.productImage[0] // If it's an array, take the first image
-              : item.productId.productImage;
+    const userId = req.session.user._id;
+    let cart = await Cart.findOne({ userId }).populate({
+      path: "item.productId",
+      select: "productName productImage",
+    });
 
-            return {
-              productId: item.productId._id,
-              productName: item.productId.productName,
-              name: item.name,
-              productImage: productImage,
-              size: item.size,
-              quantity: item.quantity,
-              price: item.price,
-              total: item.total,
-            };
-          })
-        : [];
+    // If no cart exists yet for this user, render with empty cart
+    if (!cart || !cart.item || cart.item.length === 0) {
+      return res.render("user/cart", { cart: [], cartTotal: 0 });
+    }
 
-    console.log("Formatted Cart:", formattedCart);
+    // Format cart items for display
+    const formattedCart = cart.item.map((item) => {
+      // Handle case where productId might be null (product was deleted)
+      if (!item.productId) {
+        return null;
+      }
+      
+      const productImage = Array.isArray(item.productId.productImage)
+        ? item.productId.productImage[0] // If it's an array, take the first image
+        : item.productId.productImage;
+        
+      return {
+        productId: item.productId._id,
+        name: item.productId.productName || item.name,
+        productImage: productImage,
+        size: item.size,
+        quantity: item.quantity,
+        price: item.price,
+        total: item.total,
+      };
+    }).filter(item => item !== null); // Remove any null items (deleted products)
 
-    const cartTotal = cart ? cart.cartTotal : 0;
-
+    // Render the cart page
     res.render("user/cart", {
       cart: formattedCart,
-      cartTotal: cart.cartTotal,
+      cartTotal: cart.cartTotal || 0,
     });
   } catch (error) {
     console.error("Error fetching cart:", error);
-    res.status(500).send("Error fetching cart");
+    res.status(500).render("error", { message: "Failed to load cart" });
   }
 };
+
 const addToCart = async (req, res) => {
   try {
     console.log("Received Add to Cart request:", req.body);
