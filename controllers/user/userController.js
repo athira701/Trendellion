@@ -146,7 +146,8 @@ const login = async (req, res) => {
         req.session.user = {
             _id: findUser._id,
             email: findUser.email,
-            name: findUser.name
+            name: findUser.name,
+            
         };
         console.log("see",req.session.user)
 
