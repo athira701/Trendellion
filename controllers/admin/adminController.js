@@ -68,13 +68,15 @@ const loadDashboard = async (req, res) => {
 
     try {
         console.log("Starting dashboard data fetch...");
+        const orderStatusCheck = await Order.distinct("orderStatus");
+        console.log("Order statuses in database:", orderStatusCheck);
 
         // Get total revenue, profit, and refunds
         const orderStats = await Order.aggregate([
             {
                 $facet: {
                     "revenue": [
-                        { $match: { orderStatus: { $in: ["DELIVERED", "Shipped"] } } },
+                        { $match: { orderStatus: { $in: ["Delivered", "Shipped"] } } },
                         { $group: { _id: null, total: { $sum: "$totalAmount" } } }
                     ],
                     "pendingRevenue": [
@@ -102,10 +104,14 @@ const loadDashboard = async (req, res) => {
             }
         ]);
 
+        console.log("Raw orderStats:", JSON.stringify(orderStats, null, 2));
+
         // Format the order stats
         const totalRevenue = orderStats[0].revenue[0]?.total || 0;
         const pendingRevenue = orderStats[0].pendingRevenue[0]?.total || 0;
         const totalRefunds = orderStats[0].refunds[0]?.total || 0;
+
+        console.log("Revenue breakdown - Total:", totalRevenue, "Pending:", pendingRevenue);
         
         // Format order counts by status
         const orderCounts = {};
