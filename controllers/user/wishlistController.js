@@ -4,6 +4,35 @@ const Product = require("../../models/productSchema");
 const User = require("../../models/userSchema");
 const path = require("path");
 
+
+const getWishlist = async (req, res) => {
+  try {
+    // Check if user is logged in
+    if (!req.session.user || !req.session.user._id) {
+      return res.redirect('/login'); // Redirect to login if no user session
+    }
+    
+    // Find the user's wishlist
+    const wishlistItems = await Wishlist.findOne({
+      userId: req.session.user._id,
+    }).populate({
+      path: "items.productId",
+      select: "productName productImage salePrice regularPrice", // Added regularPrice
+    });
+    
+    // If no wishlist exists yet for this user, render with empty items array
+    if (!wishlistItems) {
+      return res.render("user/wishlist", { wishlistItems: { items: [] } });
+    }
+   
+    res.render("user/wishlist", { wishlistItems });
+  } catch (error) {
+    console.error("Error fetching wishlist:", error);
+    res.status(500).render("error", { message: "Failed to load wishlist" });
+  }
+};
+
+
 const addToWishlist = async (req, res) => {
   try {
     const { productId, selectedSize } = req.body;
@@ -84,27 +113,7 @@ const removeFromWishlist = async (req, res) => {
   }
 };
 
-const getWishlist = async (req, res) => {
-  try {
-   
-    const wishlistItems = await Wishlist.findOne({
-      userId: req.session.user._id,
-    }).populate({
-      path: "items.productId",
-      select: "productName productImage salePrice", 
-    });
 
-    
-    if (!wishlistItems) {
-      return res.render("wishlist", { wishlistItems: { items: [] } });
-    }
-   
-    res.render("user/wishlist", { wishlistItems });
-  } catch (error) {
-    console.error("Error fetching wishlist:", error);
-    res.status(500).render("error", { message: "Failed to load wishlist" });
-  }
-};
 
 module.exports = {
   addToWishlist,

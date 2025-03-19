@@ -258,6 +258,42 @@
         0%, 100% { opacity: 0.9; }
         50% { opacity: 0.5; }
     }
+    .dropdown {
+    position: relative;
+    display: inline-block;
+  }
+  
+  .dropdown-content {
+    display: none;
+    position: absolute;
+    background-color: #f9f9f9;
+    min-width: 160px;
+    box-shadow: 0px 8px 16px 0px rgba(0,0,0,0.2);
+    z-index: 1;
+    border-radius: 5px;
+  }
+  
+  .dropdown-content a {
+    color: black;
+    padding: 12px 16px;
+    text-decoration: none;
+    display: block;
+    transition: background-color 0.3s;
+  }
+  
+  .dropdown-content a:hover {
+    background-color: #f1f1f1;
+    border-radius: 5px;
+  }
+  
+  .dropdown:hover .dropdown-content {
+    display: block;
+  }
+  
+  .shop-button {
+    padding: 8px 16px;
+    color: inherit;
+  }
 </style>
 </head>
 <body>
@@ -397,3 +433,20 @@
             })
         }
         </script>
+        <script>
+            const dropdownBtn = document.getElementById('category-dropdown-btn');
+            const dropdown = document.getElementById('category-dropdown');
+            
+            // Toggle dropdown when button is clicked
+            dropdownBtn.addEventListener('click', function(e) {
+              e.preventDefault();
+              dropdown.classList.toggle('hidden');
+            });
+            
+            // Close dropdown when clicking outside
+            window.addEventListener('click', function(e) {
+              if (!dropdownBtn.contains(e.target)) {
+                dropdown.classList.add('hidden');
+              }
+            });
+          </script>

@@ -57,13 +57,20 @@ const isAuthenticated = (req, res, next) => {
 };
 
 const isUserAuthenticated = (req, res, next) => {
-    if (req.session && req.session.user && req.session.user.id)  {
-        console.log("midle ethi")
+    if (req.session && req.session.user && req.session.user._id)  {
+        console.log("come-on")
         next();
     } else {
         res.redirect('/login');
     }
 };
+// const isAuthenticated = (req, res, next) => {
+//     if (req.session.user) {
+//       next();
+//     } else {
+//       res.redirect('/login');
+//     }
+//   };
 const checkUserBlocked = async (req, res, next) => {
     try {
         console.log("entering the user blocked middleare");

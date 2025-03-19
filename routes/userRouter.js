@@ -102,9 +102,9 @@ router.post('/createRazorpayOrder',paymentController.createOrder)
 
 
 //wishlist management
+router.get('/getWishlist',isUserAuthenticated,wishlistController.getWishlist)
 router.post('/addToWishlist',wishlistController.addToWishlist)
 router.post('/removeFromWishlist',wishlistController.removeFromWishlist)
-router.get('/getWishlist',wishlistController.getWishlist)
 //router.get('/checkWishlistStatus',wishlistController.checkWishlistStatus)
 
 //coupon management
